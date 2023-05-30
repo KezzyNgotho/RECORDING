@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # KEEP
+=======
+>>>>>>> 4c3c8911 (Create README.md)
 # RECORDING
 ## Dairy FARMER'S RECORD KEEPING APPLICATION
 The Farmer's Record Keeping Application is a mobile app designed to help farmers easily manage and organize their farm-related records. The app provides a user-friendly interface for farmers to input, track, and analyze various types of data such as cattle records, milk production, sales, expenses, and more.
@@ -28,6 +31,10 @@ Submit a pull request describing your changes.
 
 ###### LISENCE
 The Farmer's Record Keeping Application is open-source software licensed under the MIT License.
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4c3c8911 (Create README.md)
 ####### CONTACT
 If you have any questions, suggestions, or issues, please feel free to contact me  at keziengotho18@gmail.com.com.
 
