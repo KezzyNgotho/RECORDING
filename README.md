@@ -32,9 +32,12 @@ Submit a pull request describing your changes.
 ###### LISENCE
 The Farmer's Record Keeping Application is open-source software licensed under the MIT License.
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 4c3c8911 (Create README.md)
+=======
+>>>>>>> 18dbfdb6 (Update README.md)
 ####### CONTACT
 If you have any questions, suggestions, or issues, please feel free to contact me  at keziengotho18@gmail.com.com.
 
