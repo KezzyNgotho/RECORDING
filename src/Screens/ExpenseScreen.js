@@ -9,11 +9,9 @@ import {
   ScrollView,
   Image
 } from 'react-native';
-import AntDesign from 'react-native-vector-icons/AntDesign';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import DatePicker from '@react-native-community/datetimepicker';
+import Toast from 'react-native-toast-message';
 import { saveExpenseStatement } from '../components/expense';
-
 
 const ExpenseScreen = () => {
   const [expenses, setExpenses] = useState([]);
@@ -28,8 +26,24 @@ const ExpenseScreen = () => {
     if (newExpense.description && newExpense.amount && newExpense.date) {
       setExpenses([...expenses, newExpense]);
       setNewExpense({ description: '', amount: '', date: new Date() }); // Reset date to default
+
+      // Show success notification
+      Toast.show({
+        type: 'success',
+        text1: 'Expense recorded',
+        position: 'bottom',
+      });
+    } else {
+      // Show error notification if any field is missing
+      Toast.show({
+        type: 'error',
+        text1: 'Missing fields',
+        text2: 'Please fill in all the fields',
+        position: 'bottom',
+      });
     }
   };
+
 
   const handleGenerateStatement = () => {
     saveExpenseStatement(expenses);
@@ -85,15 +99,18 @@ const ExpenseScreen = () => {
             />
           )}
           <TouchableOpacity style={styles.addButton} onPress={handleAddExpense}>
-          <View style={styles.profile}>
-          <Image
-            source={require('../../src/Screens/assets/icons8-add-48.png')}
-            style={styles.profileImage}
-          />
-           </View>
+            <View style={styles.profile}>
+              <Image
+                source={require('../../src/Screens/assets/icons8-add-48.png')}
+                style={styles.profileImage}
+              />
+            </View>
             <Text style={styles.addButtonText}>Add Expense</Text>
           </TouchableOpacity>
+          <Toast ref={(ref) => Toast.setRef(ref)} /> 
         </View>
+  
+
         <View style={styles.expenseSummary}>
           <Text style={styles.summaryTitle}>Expense Summary</Text>
           <Text style={styles.summaryText}>Total Expenses:</Text>
@@ -103,7 +120,6 @@ const ExpenseScreen = () => {
           <Text style={styles.generateButtonText}>Generate Expense Statement</Text>
         </TouchableOpacity>
       </ScrollView>
-     
     </SafeAreaView>
   );
 };
@@ -145,7 +161,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 8,
     marginBottom: 8,
-  },
+    color: 'black',
+    fontSize:16
+  }
+    ,
   datePickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',

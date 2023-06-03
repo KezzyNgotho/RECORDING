@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,28 +8,9 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker';
+import {useNavigation} from '@react-navigation/native';
 
-import { useNavigation } from '@react-navigation/native';
-
-const CustomDropdown = ({ label, value, onValueChange, items }) => {
-  return (
-    <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}:</Text>
-      <View style={styles.dropdownContainer}>
-        <Picker
-          style={styles.picker}
-          selectedValue={value}
-          onValueChange={onValueChange}
-        >
-          {items.map((item, index) => (
-            <Picker.Item key={index} label={item.label} value={item.value} />
-          ))}
-        </Picker>
-      </View>
-    </View>
-  );
-};
+import CustomDropdown from '../components/CustomDropdown';
 
 const MilkScreen = () => {
   const navigation = useNavigation();
@@ -40,19 +21,19 @@ const MilkScreen = () => {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const handleTimeOfDayChange = (value) => {
+  const handleTimeOfDayChange = value => {
     setTimeOfDay(value);
   };
 
-  const handleUsageChange = (value) => {
+  const handleUsageChange = value => {
     setUsage(value);
   };
 
-  const handleQuantityChange = (value) => {
+  const handleQuantityChange = value => {
     setQuantity(value);
   };
 
-  const handleAmountChange = (value) => {
+  const handleAmountChange = value => {
     setAmount(value);
   };
 
@@ -91,13 +72,35 @@ const MilkScreen = () => {
     Alert.alert('Success', 'Milk production recorded successfully');
   };
 
+  const handleRecordUsage = () => {
+    if (usage === '') {
+      Alert.alert('Error', 'Please select a usage');
+      return;
+    }
+
+    if (quantity === '') {
+      Alert.alert('Error', 'Please enter the quantity');
+      return;
+    }
+
+    // Perform the logic to record milk usage based on the selected values
+    console.log('Usage:', usage);
+    console.log('Quantity:', quantity);
+
+    // Clear the form fields
+    setUsage('');
+    setQuantity('');
+
+    // Show success message
+    Alert.alert('Success', 'Milk usage recorded successfully');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Record Milk Production</Text>
       <TouchableOpacity
         style={styles.datePickerButton}
-        onPress={showDatepicker}
-      >
+        onPress={showDatepicker}>
         <Text style={styles.datePickerButtonText}>Select Date</Text>
       </TouchableOpacity>
       {showDatePicker && (
@@ -113,10 +116,10 @@ const MilkScreen = () => {
         value={timeOfDay}
         onValueChange={handleTimeOfDayChange}
         items={[
-          { label: 'Select Time of Day', value: '' },
-          { label: 'Morning', value: 'Morning' },
-          { label: 'Afternoon', value: 'Afternoon' },
-          { label: 'Evening', value: 'Evening' },
+          {label: 'Select Time of Day', value: ''},
+          {label: 'Morning', value: 'Morning'},
+          {label: 'Afternoon', value: 'Afternoon'},
+          {label: 'Evening', value: 'Evening'},
         ]}
       />
       <TextInput
@@ -130,16 +133,19 @@ const MilkScreen = () => {
         <Text style={styles.recordButtonText}>Record Milk</Text>
       </TouchableOpacity>
       <CustomDropdown
-        label="Usage"
-        value={usage}
-        onValueChange={handleUsageChange}
-        items={[
-          { label: 'Select Usage', value: '' },
-          { label: 'Cattle Feeding', value: 'Cattle Feeding' },
-          { label: 'Selling', value: 'Selling' },
-          { label: 'Home Consumption', value: 'Home Consumption' },
-        ]}
-      />
+      label="Usage"
+      value={usage}
+      onValueChange={handleUsageChange}
+      items={[
+        { label: 'Select Usage', value: '' },
+        { label: 'Cattle Feeding', value: 'Cattle Feeding' },
+        { label: 'Selling', value: 'Selling' },
+        { label: 'Home Consumption', value: 'Home Consumption' },
+      ]}
+      dropdownStyle={styles.dropdown}
+      labelStyle={styles.label}
+      itemStyle={styles.item}
+    />
       <TextInput
         style={styles.input}
         value={quantity}
@@ -148,12 +154,15 @@ const MilkScreen = () => {
         keyboardType="numeric"
       />
       <TouchableOpacity
-        onPress={() => navigation.navigate('Statements')}
-        style={styles.statementButton}
+        style={styles.recordButton} // Add a separate button style for usage
+        onPress={handleRecordUsage} // Handle the record usage action
       >
-        <Text style={styles.statementButtonText}>
-          Generate Milk Statements
-        </Text>
+        <Text style={styles.recordButtonText}>Record Usage</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Statements')}
+        style={styles.statementButton}>
+        <Text style={styles.statementButtonText}>Generate Milk Statements</Text>
       </TouchableOpacity>
     </View>
   );
@@ -165,32 +174,37 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'white',
   },
+  dropdown: {
+    borderWidth: 16,
+    borderColor: 'black',
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  label: {
+    fontWeight: 'bold',
+    marginBottom: 5,
+    fontSize:16,
+    textColor:"red"
+  },
+  item: {
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    fontSize:20,
+    textColor:"red"
+  },
+
   title: {
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 10,
-    marginHorizontal: 70,
+    textAlign: 'center', // Center the text
     color: '#000000',
   },
   inputContainer: {
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 20,
-    marginBottom: 5,
-    color: 'black',
-    fontWeight: '700',
-  },
-  picker: {
-    borderWidth: 5,
-    borderColor: '#CEF3CE',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  dropdownContainer: {
-    borderWidth: 2,
-    borderColor: 'black',
-    borderRadius: 5,
+    marginBottom: 20,
   },
   input: {
     borderWidth: 2,
@@ -198,13 +212,15 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
+    color: 'black',
+    fontSize: 16,
   },
   datePickerButton: {
     backgroundColor: 'black',
-    borderRadius: 100,
+    borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    alignItems: 'center', // Added to center the text
+    alignItems: 'center',
   },
   datePickerButtonText: {
     color: 'white',
@@ -214,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     borderRadius: 5,
     padding: 10,
-    alignItems: 'center', // Added to center the text
+    alignItems: 'center',
     marginBottom: 10,
   },
   recordButtonText: {
@@ -227,7 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   statementButtonText: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '900',
     color: '#000000',
   },

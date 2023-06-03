@@ -1,120 +1,105 @@
-import React, { useEffect } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { NavigationContainer } from '@react-navigation/native';
+import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 import HomeScreen from './src/Screens/HomeScreen';
-import SettingsScreen from './src/Screens/SettingsScreen';
-import SignUpScreen from './src/Screens/SignUpScreen';
-import LoginScreen from './src/Screens/LoginScreen';
 import CattleScreen from './src/Screens/CattleScreen';
 import StatementsScreen from './src/Screens/StatementsScreen';
 import MilkScreen from './src/Screens/MilkScreen';
 import SalesScreen from './src/Screens/SalesScreen';
 import ExpenseScreen from './src/Screens/ExpenseScreen';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import { Image, View, StyleSheet, Text } from 'react-native';
 import NotificationScreen from './src/Screens/NotificationScreen';
 import SidebarDrawer from './src/Screens/SidebarDrawer';
+import SettingsScreen from './src/Screens/SettingsScreen';
+import LoginScreen from './src/Screens/LoginScreen';
+import SignUpScreen from './src/Screens/SignUpScreen';
+const connectDB = require('../db');
 
-const Stack = createStackNavigator();
+
+
+connectDB();
+
+
+const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const screenOptionStyle = {
   headerShown: false,
-  headerBackTitle: 'Back',
 };
+
+const BackButton = ({ navigation }) => {
+  return (
+    <MaterialCommunityIcons
+      name="arrow-left"
+      size={24}
+      color="black"
+      onPress={() => navigation.goBack()}
+    />
+  );
+};
+
+function HomeStack() {
+  return (
+    <Stack.Navigator
+      initialRouteName="Home"
+      screenOptions={{
+        ...screenOptionStyle,
+        headerLeft: ({ navigation }) => <BackButton navigation={navigation} />,
+      }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Cattle" component={CattleScreen} />
+      <Stack.Screen name="Expenses" component={ExpenseScreen} />
+      <Stack.Screen name="Milk" component={MilkScreen} />
+      <Stack.Screen name="SidebarDrawer" component={SidebarDrawer} />
+      <Stack.Screen name="Notification" component={NotificationScreen} />
+      <Stack.Screen name="Sales" component={SalesScreen} />
+      <Stack.Screen name="Statements" component={StatementsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function SettingsStack() {
+  return (
+    <Stack.Navigator
+      initialRouteName="Settings"
+      screenOptions={{
+        ...screenOptionStyle,
+        headerLeft: ({ navigation }) => <BackButton navigation={navigation} />,
+      }}
+    >
+      <Stack.Screen name="Settings" component={SettingsScreen} />
+    </Stack.Navigator>
+  );
+}
 
 function AuthStack() {
   return (
-    <Stack.Navigator screenOptions={screenOptionStyle}>
+    <Stack.Navigator
+      initialRouteName="SignUp"
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 }
 
-function HomeStack() {
-  return (
-    <Stack.Navigator screenOptions={screenOptionStyle}>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Cattle" component={CattleScreen} />
-      <Stack.Screen name="Statements" component={StatementsScreen} />
-      <Stack.Screen name="Milk" component={MilkScreen} />
-      <Stack.Screen name="Sales" component={SalesScreen} />
-      <Stack.Screen name="Expenses" component={ExpenseScreen} />
-      <Stack.Screen name="Notification" component={NotificationScreen} />
-      <Stack.Screen name="SidebarDrawer" component={SidebarDrawer} />
-    </Stack.Navigator>
-  );
-}
-
-export default function App() {
-  const userIsLoggedIn = true; // Set this flag based on the user's authentication status
-
-  useEffect(() => {
-    // Navigates to the Home screen upon login
-    if (userIsLoggedIn) {
-      navigation.navigate('Home');
-    }
-  }, [userIsLoggedIn]);
-
+function App() {
   return (
     <NavigationContainer>
-      {userIsLoggedIn ? (
-        <Tab.Navigator initialRouteName="Home" screenOptions={screenOptionStyle}>
-          <Tab.Screen
-            options={{
-              tabBarLabel: '',
-              tabBarIcon: ({ color }) => (
-                <View style={styles.profile}>
-                  <Image
-                    source={require('../KEEP/src/Screens/assets/icons8-home-64.png')}
-                    style={styles.profileImage}
-                  />
-                </View>
-              ),
-            }}
-            name="Home"
-            component={HomeStack}
-          />
-          <Tab.Screen
-            options={{
-              tabBarLabel: '',
-              tabBarIcon: ({ color }) => (
-                <View style={styles.profile}>
-                  <Image
-                    source={require('../KEEP/src/Screens/assets/icons8-settings-50.png')}
-                    style={styles.profileImage}
-                  />
-                </View>
-              ),
-            }}
-            name="Settings"
-            component={SettingsScreen}
-          />
-        </Tab.Navigator>
-      ) : (
-        <AuthStack />
-      )}
+      <Stack.Navigator
+        initialRouteName="AuthStack"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="AuthStack" component={AuthStack} />
+        <Stack.Screen name="HomeStack" component={HomeStack} />
+        <Stack.Screen name="SettingsStack" component={SettingsStack} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
-  profile: {
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 5,
-    backgroundColor: '#CEF3CE',
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000',
-  },
-});
+export default App;

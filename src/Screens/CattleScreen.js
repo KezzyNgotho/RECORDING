@@ -10,11 +10,12 @@ import {
   ScrollView,
   Modal,
   Image,
+ 
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Picker } from '@react-native-picker/picker';
 
-
+import { BackButton } from 'react-router-dom';
 const CattleScreen = () => {
   const [cattleList, setCattleList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -102,7 +103,9 @@ const CattleScreen = () => {
   const femaleCattleCount = cattleList.filter((cattle) => cattle.gender === 'female').length;
 
   return (
+       
     <SafeAreaView style={styles.container}>
+    
     <Text style={{fontSize:18,color:'black',marginLeft:160,fontWeight:'900'}}>MY CATTLE</Text>
       <ScrollView>
 
@@ -208,6 +211,7 @@ const CattleScreen = () => {
       </ScrollView>
     
     </SafeAreaView>
+  
   );
 };
 const styles = StyleSheet.create({
