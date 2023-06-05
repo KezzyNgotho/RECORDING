@@ -15,7 +15,7 @@ import SidebarDrawer from './src/Screens/SidebarDrawer';
 import SettingsScreen from './src/Screens/SettingsScreen';
 import LoginScreen from './src/Screens/LoginScreen';
 import SignUpScreen from './src/Screens/SignUpScreen';
-const connectDB = require('../db');
+const connectDB = require('../KEEP/src/components/db');
 
 
 

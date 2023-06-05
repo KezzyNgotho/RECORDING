@@ -1,15 +1,31 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-
+import axios from 'axios';
+import { User } from '../db';
 const LoginScreen = ({ navigation }) => {
 const [email, setEmail] = useState('');
 const [password, setPassword] = useState('');
 
-const handleLogin = () => {
-// login logic with email and password
+const handleLogin = async () => {
+  // Check if any field is empty
+  if (email === '' || password === '') {
+    setError('Email and password are required');
+    return;
+  }
 
+  try {
+    const response = await axios.post('http://192.168.0.103:4000/login', {
+      email,
+      password,
+    });
 
-navigation.navigate('HomeStack');
+    // Handle the response as needed, e.g., save the user token in AsyncStorage and navigate to a protected screen
+    console.log(response.data);
+    navigation.navigate('Home');
+  } catch (error) {
+    // Handle the error, e.g., show an error message
+    console.error('Failed to log in:', error);
+  }
 };
 
 return (

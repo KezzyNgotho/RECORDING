@@ -10,7 +10,8 @@ ScrollView,
 KeyboardAvoidingView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import axios from 'axios';
+import { User } from '../db';
 const SignUpScreen = ({ navigation }) => {
 const [farmName, setFarmName] = useState('');
 const [farmOwner, setFarmOwner] = useState('');
@@ -20,26 +21,39 @@ const [phoneNumber, setPhoneNumber] = useState('');
 const [address, setAddress] = useState('');
 const [error, setError] = useState('');
 
-const handleSignUp = () => {
-// Check if any field is empty
-if (
-farmName === '' ||
-farmOwner === '' ||
-email === '' ||
-password === '' ||
-phoneNumber === '' ||
-address === ''
-) {
-setError('All fields are required');
-return;
-}
+const handleSignUp = async () => {
+  // Check if any field is empty
+  if (
+    farmName === '' ||
+    farmOwner === '' ||
+    email === '' ||
+    password === '' ||
+    phoneNumber === '' ||
+    address === ''
+  ) {
+    setError('All fields are required');
+    return;
+  }
 
+  try {
+    const response = await axios.post('http://192.168.0.103:4000/signup', {
+      farmName,
+      farmOwner,
+      email,
+      password,
+      phoneNumber,
+      address,
+    });
 
-// Perform sign-up logic with the entered data
-// ...
-// After successful sign-up, navigate to the login screen
-navigation.navigate('Login');
+    // Handle the response as needed, e.g., show a success message
+    console.log(response.data);
+    navigation.navigate('Login');
+  } catch (error) {
+    // Handle the error, e.g., show an error message
+    console.error('Failed to sign up:', error);
+  }
 };
+
 
 return (
 <KeyboardAvoidingView style={styles.container} >
