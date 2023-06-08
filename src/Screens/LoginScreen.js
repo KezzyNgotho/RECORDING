@@ -23,7 +23,7 @@ const LoginScreen = ({ navigation }) => {
 
       // Handle the response as needed, e.g., save the user token in AsyncStorage and navigate to a protected screen
       console.log(response.data);
-      navigation.navigate('HomeStack');
+      navigation.navigate('Main');
     } catch (error) {
       if (error.response && error.response.status === 404) {
         setError('User not found');
