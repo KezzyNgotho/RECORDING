@@ -1,26 +1,37 @@
 const express = require('express');
 const mongoose = require('mongoose');
-              
+
 const app = express();
 const PORT = 4000; // Use any port number you prefer
 
 // Connect to MongoDB
-mongoose.connect('mongodb://192.168.0.103:27017/KEEP', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose
+  .connect('mongodb+srv://keziengotho18:kezie5585@cluster0.peasyvh.mongodb.net/', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 15000, // Set a shorter timeout for server selection
+    socketTimeoutMS: 45000, // Set a longer socket timeout
+  })
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch(error => {
+    console.error('Failed to connect to MongoDB:', error);
+  });
+
+// Rest of the code remains the same...
+
+// Rest of the code remains the same...
+
 
 // Body parsing middleware
 app.use(express.json());
-
-/* // Use user routes
-app.use('/api', userRoutes); */
 
 // Schema for the user
 const userSchema = new mongoose.Schema({
   farmName: String,
   farmOwner: String,
-  email: String,
+  email: { type: String, index: true }, // Add index: true to the email field
   password: String,
   phoneNumber: String,
   address: String,
@@ -34,14 +45,13 @@ app.post('/signup', async (req, res) => {
   try {
     const { farmName, farmOwner, email, password, phoneNumber, address } = req.body;
 
-    // Check if the email already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    const userCount = await User.countDocuments({ email });
+    if (userCount > 0) {
       return res.status(409).json({ error: 'Email already exists' });
     }
 
     // Create a new user instance
-    const user = new User({
+    const newUser = new User({
       farmName,
       farmOwner,
       email,
@@ -51,7 +61,7 @@ app.post('/signup', async (req, res) => {
     });
 
     // Save the user to the database
-    await user.save();
+    await newUser.save();
 
     res.status(200).json({ message: 'User signed up successfully' });
   } catch (error) {
@@ -65,18 +75,20 @@ app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find the user by email
-    const user = await User.findOne({ email });
-    if (!user) {
+    const userCount = await User.countDocuments({ email });
+    if (userCount === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    // Find the user
+    const user = await User.findOne({ email });
 
     // Check if the password matches
     if (user.password !== password) {
       return res.status(401).json({ error: 'Invalid password' });
     }
 
-    res.status(200).json({ message: 'User logged in successfully' });
+    res.status(200).json({ message: 'User logged in successfully', user });
   } catch (error) {
     console.error('Failed to log in:', error);
     res.status(500).json({ error: 'Failed to log in' });
