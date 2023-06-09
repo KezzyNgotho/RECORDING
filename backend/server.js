@@ -94,6 +94,52 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Failed to log in' });
   }
 });
+//cattle schema
+// Create a Cattle schema
+const cattleSchema = new mongoose.Schema({
+  name: String,
+  age: String,
+  breed: String,
+  gender: String,
+  isPregnant: Boolean,
+});
+
+// Create a Cattle model
+const Cattle = mongoose.model('Cattle', cattleSchema);
+
+// Middleware
+app.use(express.json());
+
+// Routes
+app.get('/cattles', async (req, res) => {
+  try {
+    const cattleList = await Cattle.find();
+    res.json(cattleList);
+  } catch (error) {
+    console.error('Error fetching cattle data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// new cattle
+app.post('/cattle', async (req, res) => {
+  const newCattleData = req.body;
+  try {
+    // Validate the required fields
+    if (!newCattleData.name || !newCattleData.age || !newCattleData.breed || !newCattleData.gender) {
+      return res.status(400).json({ error: 'Required fields are missing' });
+    }
+
+    const newCattle = await Cattle.create(newCattleData);
+    res.status(201).json(newCattle);
+  } catch (error) {
+    console.error('Error registering new cattle:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
 
 // Start the server
 app.listen(PORT, () => {

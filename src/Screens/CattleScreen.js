@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,12 @@ import {
   ScrollView,
   Modal,
   Image,
- 
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { Picker } from '@react-native-picker/picker';
+import {Picker} from '@react-native-picker/picker';
+import axios from 'axios';
 
-import { BackButton } from 'react-router-dom';
+import {BackButton} from 'react-router-dom';
 const CattleScreen = () => {
   const [cattleList, setCattleList] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -32,7 +32,10 @@ const CattleScreen = () => {
   useEffect(() => {
     const fetchCattleData = async () => {
       try {
-        const response = await fetch('https://example.com/cattle');
+        const response = await fetch('http://192.168.0.103:4000/cattles');
+        if (!response.ok) {
+          throw new Error('Failed to fetch cattle data');
+        }
         const data = await response.json();
         setCattleList(data);
         setOriginalList(data);
@@ -40,35 +43,46 @@ const CattleScreen = () => {
         console.error('Error fetching cattle data:', error);
       }
     };
-
+  
     fetchCattleData();
   }, []);
+  
 
   const handleSearch = () => {
-    const filteredCattle = originalList.filter((cattle) =>
-      cattle.name.toLowerCase().includes(searchText.toLowerCase())
+    const filteredCattle = originalList.filter(cattle =>
+      cattle.name.toLowerCase().includes(searchText.toLowerCase()),
     );
     setCattleList(filteredCattle);
   };
 
-  const renderCattleCard = ({ item }) => (
-    <View style={[styles.card, { backgroundColor: item.color === 'blue' ? '#D6E4C3' : '#CEF3CE', }]}>
+  const renderCattleCard = ({item}) => (
+    <View
+      style={[
+        styles.card,
+        {backgroundColor: item.color === 'blue' ? '#D6E4C3' : '#CEF3CE'},
+      ]}>
       <Text style={styles.cattleName}>{item.name}</Text>
       <Text style={styles.cattleDetails}>Age: {item.age}</Text>
       <Text style={styles.cattleDetails}>Breed: {item.breed}</Text>
       <Text style={styles.cattleDetails}>Gender: {item.gender}</Text>
-      <Text style={styles.cattleDetails}>Pregnant: {item.isPregnant ? 'Yes' : 'No'}</Text>
+      <Text style={styles.cattleDetails}>
+        Pregnant: {item.isPregnant ? 'Yes' : 'No'}
+      </Text>
       <View style={styles.genderIcon}>
-        <Icon name={item.gender === 'male' ? 'mars' : 'venus'} size={18} color="#000000" />
+        <Icon
+          name={item.gender === 'male' ? 'mars' : 'venus'}
+          size={18}
+          color="#000000"
+        />
       </View>
       {item.isPregnant && (
         <View style={styles.pregnantIcon}>
-        <View style={styles.profile}>
-        <Image
-          source={require('../../src/Screens/assets/icons8-heartbeat-64.png')}
-          style={styles.profileImage}
-        />
-      </View>
+          <View style={styles.profile}>
+            <Image
+              source={require('../../src/Screens/assets/icons8-heartbeat-64.png')}
+              style={styles.profileImage}
+            />
+          </View>
         </View>
       )}
     </View>
@@ -77,40 +91,60 @@ const CattleScreen = () => {
   const handleRegisterNewCattle = () => {
     setShowForm(true);
   };
-
-  const handleFormSubmit = () => {
+  const handleFormSubmit = async () => {
     const newCattleData = {
       ...newCattle,
-      id: Date.now(), // Assign a unique ID to the new cattle
+      id: Date.now(),
     };
 
-    setCattleList((prevCattleList) => [...prevCattleList, newCattleData]);
-    setOriginalList((prevOriginalList) => [...prevOriginalList, newCattleData]);
-    setNewCattle({
-      name: '',
-      age: '',
-      breed: '',
-      gender: '',
-      isPregnant: false,
-    });
-    setShowForm(false);
+    try {
+      const response = await axios.post(
+        'http://192.168.0.103:4000/cattle',
+        newCattleData,
+      );
+      const newCattle = response.data;
+      setCattleList(prevCattleList => [...prevCattleList, newCattle]);
+      setOriginalList(prevOriginalList => [...prevOriginalList, newCattle]);
+      setNewCattle({
+        name: '',
+        age: '',
+        breed: '',
+        gender: '',
+        isPregnant: false,
+      });
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error registering new cattle:', error);
+    }
   };
 
   // Calculate summary counts
   const totalCattleCount = cattleList.length;
-  const pregnantCattleCount = cattleList.filter((cattle) => cattle.isPregnant).length;
-  const maleCattleCount = cattleList.filter((cattle) => cattle.gender === 'male').length;
-  const femaleCattleCount = cattleList.filter((cattle) => cattle.gender === 'female').length;
+  const pregnantCattleCount = cattleList.filter(
+    cattle => cattle.isPregnant,
+  ).length;
+  const maleCattleCount = cattleList.filter(
+    cattle => cattle.gender === 'male',
+  ).length;
+  const femaleCattleCount = cattleList.filter(
+    cattle => cattle.gender === 'female',
+  ).length;
+  
 
   return (
-       
     <SafeAreaView style={styles.container}>
+      <Text
+        style={{
+          fontSize: 20,
+          color: 'black',
+          marginLeft: 150,
+          fontWeight: '900',
+          marginTop: 25,
+        }}>
+        MY CATTLE
+      </Text>
     
-    <Text style={{fontSize:18,color:'black',marginLeft:160,fontWeight:'900'}}>MY CATTLE</Text>
-      <ScrollView>
-
         <View style={styles.searchContainer}>
-        
           <TextInput
             style={styles.searchInput}
             placeholder="Search cattle..."
@@ -118,20 +152,26 @@ const CattleScreen = () => {
             onChangeText={setSearchText}
           />
           <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-         <View style={styles.profile}>
-                    <Image
-                      source={require('../../src/Screens/assets/icons8-search-50.png')}
-                      style={styles.profileImage}
-                    />
-                  </View>
+            <View style={styles.profile}>
+              <Image
+                source={require('../../src/Screens/assets/icons8-search-50.png')}
+                style={styles.profileImage}
+              />
+            </View>
           </TouchableOpacity>
+          
         </View>
+        <ScrollView>
         <FlatList
-          data={cattleList}
-          renderItem={renderCattleCard}
-          keyExtractor={(item) => item.id.toString()}
-        />
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegisterNewCattle}>
+  data={cattleList}
+  renderItem={renderCattleCard}
+  keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
+/>
+</ScrollView>
+
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={handleRegisterNewCattle}>
           <Text style={styles.registerButtonText}>Register New Cattle</Text>
         </TouchableOpacity>
 
@@ -141,20 +181,21 @@ const CattleScreen = () => {
             <TextInput
               style={styles.formInput}
               value={newCattle.name}
-              onChangeText={(text) => setNewCattle({ ...newCattle, name: text })}
+              onChangeText={text => setNewCattle({...newCattle, name: text})}
             />
             <Text style={styles.formLabel}>Age:</Text>
             <TextInput
               style={styles.formInput}
               value={newCattle.age}
-              onChangeText={(text) => setNewCattle({ ...newCattle, age: text })}
+              onChangeText={text => setNewCattle({...newCattle, age: text})}
             />
             <Text style={styles.formLabel}>Breed:</Text>
             <Picker
               style={styles.formInput}
               selectedValue={newCattle.breed}
-              onValueChange={(value) => setNewCattle({ ...newCattle, breed: value })}
-            >
+              onValueChange={value =>
+                setNewCattle({...newCattle, breed: value})
+              }>
               <Picker.Item label="Friesian" value="Friesian" />
               <Picker.Item label="Jersey" value="Jersey" />
               <Picker.Item label="Holstein" value="Holstein" />
@@ -166,8 +207,9 @@ const CattleScreen = () => {
             <Picker
               style={styles.formInput}
               selectedValue={newCattle.gender}
-              onValueChange={(value) => setNewCattle({ ...newCattle, gender: value })}
-            >
+              onValueChange={value =>
+                setNewCattle({...newCattle, gender: value})
+              }>
               <Picker.Item label="Male" value="male" />
               <Picker.Item label="Female" value="female" />
             </Picker>
@@ -175,9 +217,11 @@ const CattleScreen = () => {
               <TouchableOpacity
                 style={styles.formCheckbox}
                 onPress={() =>
-                  setNewCattle({ ...newCattle, isPregnant: !newCattle.isPregnant })
-                }
-              >
+                  setNewCattle({
+                    ...newCattle,
+                    isPregnant: !newCattle.isPregnant,
+                  })
+                }>
                 {newCattle.isPregnant ? (
                   <View style={styles.profile}>
                     <Image
@@ -187,31 +231,47 @@ const CattleScreen = () => {
                   </View>
                 ) : (
                   <View style={styles.profile}>
-                  <Image
-                    source={require('../../src/Screens/assets/icons8-unchecked-checkbox-50.png')}
-                    style={styles.profileImage}
-                  />
-                </View>
+                    <Image
+                      source={require('../../src/Screens/assets/icons8-unchecked-checkbox-50.png')}
+                      style={styles.profileImage}
+                    />
+                  </View>
                 )}
                 <Text style={styles.formCheckboxLabel}>Pregnant</Text>
               </TouchableOpacity>
+              
             </View>
-            <TouchableOpacity style={styles.formSubmitButton} onPress={handleFormSubmit}>
+       
+            <TouchableOpacity
+              style={styles.formSubmitButton}
+              onPress={handleFormSubmit}>
               <Text style={styles.formSubmitButtonText}>Submit</Text>
             </TouchableOpacity>
           </View>
         </Modal>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Cattle Summary</Text>
-          <Text style={styles.summaryText}>Total Count: {totalCattleCount}</Text>
-          <Text style={styles.summaryText}>Pregnant Count: {pregnantCattleCount}</Text>
+          <Text style={styles.summaryText}>
+            Total Count: {totalCattleCount}
+          </Text>
+          <Text style={styles.summaryText}>
+            Pregnant Count: {pregnantCattleCount}
+          </Text>
           <Text style={styles.summaryText}>Male Count: {maleCattleCount}</Text>
-          <Text style={styles.summaryText}>Female Count: {femaleCattleCount}</Text>
+          <Text style={styles.summaryText}>
+            Female Count: {femaleCattleCount}
+          </Text>
         </View>
-      </ScrollView>
-    
+        <View>
+        <TouchableOpacity   style={styles.generateButton}    
+  /*       onPress={generateStatements} */
+        >
+        <Text style={styles.statement}>Generate cattle statements</Text>
+        </TouchableOpacity>
+        </View>
+       
+     
     </SafeAreaView>
-  
   );
 };
 const styles = StyleSheet.create({
@@ -219,13 +279,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
   },
+  statement:{
+    fontSize:16,
+    color:"black",
+    marginHorizontal:100,
+    marginBottom:20
+  },
   summaryCard: {
     backgroundColor: '#CEF3CE',
     padding: 20,
     borderRadius: 4,
     marginBottom: 20,
     marginHorizontal: 20,
-    marginTop:20
+    marginTop: 20,
   },
   summaryTitle: {
     fontSize: 20,
@@ -240,36 +306,36 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    marginTop: 40,
-    marginHorizontal: 20,
+    marginTop: 20,
+    marginHorizontal: 10,
   },
   searchInput: {
     flex: 1,
     height: 40,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: 'black',
     borderRadius: 4,
     paddingHorizontal: 8,
     marginRight: 3,
     backgroundColor: '#FFFFFF',
     color: '#000000',
-    marginLeft:10
+    marginLeft: 10,
   },
   searchButton: {
-  
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 3,
+    paddingHorizontal: 1,
   },
   card: {
     backgroundColor: '#CEF3CE',
     padding: 20,
-    borderRadius: 4,
+    borderRadius: 1,
     marginBottom: 8,
-    marginTop:30,
-    marginLeft:20,
-    marginRight:20
+    marginTop: 10,
+    marginLeft: 20,
+    marginRight: 20,
+    borderColor:"black"
   },
   cattleName: {
     fontSize: 18,

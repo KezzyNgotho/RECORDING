@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import axios from 'axios';
-import { User } from '../db';
+import {User} from '../db';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -64,6 +70,12 @@ const LoginScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Log In</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.nav}
+        onPress={() => navigation.navigate('SignUp')}>
+        <Text style={styles.buttonText1}>Don't have an account? Register.</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -76,10 +88,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: '#fff',
   },
+  nav: {
+    marginTop: 10,
+    color: 'black',
+  },
+  buttonText1: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   title: {
     fontSize: 25,
     fontWeight: '900',
     marginBottom: 20,
+    color:"black"
   },
   inputContainer: {
     marginBottom: 10,

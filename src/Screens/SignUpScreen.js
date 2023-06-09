@@ -126,6 +126,9 @@ return (
     <TouchableOpacity style={styles.button} onPress={handleSignUp}>
       <Text style={styles.buttonText}>Sign Up</Text>
     </TouchableOpacity>
+    <TouchableOpacity  style={styles.nav} onPress={() => navigation.navigate('Login')}>
+    <Text style={styles.buttonText1}>Already have an account? Log in.</Text>
+  </TouchableOpacity>
   </ScrollView>
 </KeyboardAvoidingView>
 );
@@ -135,6 +138,10 @@ const styles = StyleSheet.create({
 container: {
 flex: 1,
 backgroundColor: '#fff',
+},
+nav:{
+marginTop:10,
+color:"black"
 },
 scrollViewContainer: {
 flexGrow: 1,
@@ -180,6 +187,11 @@ color: '#fff',
 fontSize: 16,
 fontWeight: 'bold',
 },
+buttonText1: {
+  color: 'black',
+  fontSize: 16,
+  fontWeight: 'bold',
+  },
 errorText: {
 color: 'red',
 marginBottom: 10,
