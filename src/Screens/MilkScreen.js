@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   Alert,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 import CustomDropdown from '../components/CustomDropdown';
 
@@ -20,20 +21,49 @@ const MilkScreen = () => {
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [timeOfDayOptions, setTimeOfDayOptions] = useState([]);
+  const [usageOptions, setUsageOptions] = useState([]);
 
-  const handleTimeOfDayChange = value => {
+  useEffect(() => {
+    fetchTimeOfDayOptions();
+    fetchUsageOptions();
+  }, []);
+
+  const fetchTimeOfDayOptions = () => {
+    axios
+      .get('http://192.168.0.103:4000/timeOfDayOptions')
+      .then((response) => {
+        setTimeOfDayOptions(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const fetchUsageOptions = () => {
+    axios
+      .get('http://192.168.0.103:4000/usageOptions')
+      .then((response) => {
+        setUsageOptions(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const handleTimeOfDayChange = (value) => {
     setTimeOfDay(value);
   };
 
-  const handleUsageChange = value => {
+  const handleUsageChange = (value) => {
     setUsage(value);
   };
 
-  const handleQuantityChange = value => {
+  const handleQuantityChange = (value) => {
     setQuantity(value);
   };
 
-  const handleAmountChange = value => {
+  const handleAmountChange = (value) => {
     setAmount(value);
   };
 
@@ -58,18 +88,23 @@ const MilkScreen = () => {
       return;
     }
 
-    // Perform the logic to record milk production based on the selected values
-    console.log('Time of Day:', timeOfDay);
-    console.log('Amount:', amount);
-    console.log('Date:', date);
-
-    // Clear the form fields
-    setTimeOfDay('');
-    setAmount('');
-    setDate(new Date());
-
-    // Show success message
-    Alert.alert('Success', 'Milk production recorded successfully');
+    axios
+      .post('http://192.168.0.103:4000/recordMilkProduction', {
+        timeOfDay,
+        amount,
+        date,
+      })
+      .then((response) => {
+        console.log(response.data);
+        setTimeOfDay('');
+        setAmount('');
+        setDate(new Date());
+        Alert.alert('Success', 'Milk production recorded successfully');
+      })
+      .catch((error) => {
+        console.error(error);
+        Alert.alert('Error', 'Failed to record milk production');
+      });
   };
 
   const handleRecordUsage = () => {
@@ -83,16 +118,34 @@ const MilkScreen = () => {
       return;
     }
 
-    // Perform the logic to record milk usage based on the selected values
-    console.log('Usage:', usage);
-    console.log('Quantity:', quantity);
+    axios
+      .post('http://192.168.0.103:4000/recordMilkUsage', {
+        usage,
+        quantity,
+      })
+      .then((response) => {
+        console.log(response.data);
+        setUsage('');
+        setQuantity('');
+        Alert.alert('Success', 'Milk usage recorded successfully');
+      })
+      .catch((error) => {
+        console.error(error);
+        Alert.alert('Error', 'Failed to record milk usage');
+      });
+  };
 
-    // Clear the form fields
-    setUsage('');
-    setQuantity('');
-
-    // Show success message
-    Alert.alert('Success', 'Milk usage recorded successfully');
+  const handleGenerateStatements = () => {
+    axios
+      .get('http://192.168.0.103:4000/generateMilkStatements')
+      .then((response) => {
+        console.log(response.data);
+        Alert.alert('Success', 'Milk statements generated successfully');
+      })
+      .catch((error) => {
+        console.error(error);
+        Alert.alert('Error', 'Failed to generate milk statements');
+      });
   };
 
   return (
@@ -100,7 +153,8 @@ const MilkScreen = () => {
       <Text style={styles.title}>Record Milk Production</Text>
       <TouchableOpacity
         style={styles.datePickerButton}
-        onPress={showDatepicker}>
+        onPress={showDatepicker}
+      >
         <Text style={styles.datePickerButtonText}>Select Date</Text>
       </TouchableOpacity>
       {showDatePicker && (
@@ -115,12 +169,7 @@ const MilkScreen = () => {
         label="Time of Day"
         value={timeOfDay}
         onValueChange={handleTimeOfDayChange}
-        items={[
-          {label: 'Select Time of Day', value: ''},
-          {label: 'Morning', value: 'Morning'},
-          {label: 'Afternoon', value: 'Afternoon'},
-          {label: 'Evening', value: 'Evening'},
-        ]}
+        items={timeOfDayOptions}
       />
       <TextInput
         style={styles.input}
@@ -133,19 +182,11 @@ const MilkScreen = () => {
         <Text style={styles.recordButtonText}>Record Milk</Text>
       </TouchableOpacity>
       <CustomDropdown
-      label="Usage"
-      value={usage}
-      onValueChange={handleUsageChange}
-      items={[
-        { label: 'Select Usage', value: '' },
-        { label: 'Cattle Feeding', value: 'Cattle Feeding' },
-        { label: 'Selling', value: 'Selling' },
-        { label: 'Home Consumption', value: 'Home Consumption' },
-      ]}
-      dropdownStyle={styles.dropdown}
-      labelStyle={styles.label}
-      itemStyle={styles.item}
-    />
+        label="Usage"
+        value={usage}
+        onValueChange={handleUsageChange}
+        items={usageOptions}
+      />
       <TextInput
         style={styles.input}
         value={quantity}
@@ -154,66 +195,34 @@ const MilkScreen = () => {
         keyboardType="numeric"
       />
       <TouchableOpacity
-        style={styles.recordButton} // Add a separate button style for usage
-        onPress={handleRecordUsage} // Handle the record usage action
+        style={styles.recordButton}
+        onPress={handleRecordUsage}
       >
         <Text style={styles.recordButtonText}>Record Usage</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => navigation.navigate('Statements')}
-        style={styles.statementButton}>
-        <Text style={styles.statementButtonText}>Generate Milk Statements</Text>
+        style={styles.statementButton}
+        onPress={handleGenerateStatements}
+      >
+        <Text style={styles.statementButtonText}>
+          Generate Milk Statements
+        </Text>
       </TouchableOpacity>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     backgroundColor: 'white',
   },
-  dropdown: {
-    borderWidth: 16,
-    borderColor: 'black',
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-    fontSize:16,
-    textColor:"red"
-  },
-  item: {
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    fontSize:20,
-    textColor:"red"
-  },
-
   title: {
     fontSize: 20,
     fontWeight: '900',
     marginBottom: 10,
-    textAlign: 'center', // Center the text
+    textAlign: 'center',
     color: '#000000',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    borderWidth: 2,
-    borderColor: 'black',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-    color: 'black',
-    fontSize: 16,
   },
   datePickerButton: {
     backgroundColor: 'black',
@@ -225,6 +234,15 @@ const styles = StyleSheet.create({
   datePickerButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 2,
+    borderColor: 'black',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    color: 'black',
+    fontSize: 16,
   },
   recordButton: {
     backgroundColor: '#000000',

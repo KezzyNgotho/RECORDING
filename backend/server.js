@@ -15,14 +15,9 @@ mongoose
   .then(() => {
     console.log('Connected to MongoDB');
   })
-  .catch(error => {
+  .catch((error) => {
     console.error('Failed to connect to MongoDB:', error);
   });
-
-// Rest of the code remains the same...
-
-// Rest of the code remains the same...
-
 
 // Body parsing middleware
 app.use(express.json());
@@ -94,7 +89,7 @@ app.post('/login', async (req, res) => {
     res.status(500).json({ error: 'Failed to log in' });
   }
 });
-//cattle schema
+
 // Create a Cattle schema
 const cattleSchema = new mongoose.Schema({
   name: String,
@@ -107,9 +102,6 @@ const cattleSchema = new mongoose.Schema({
 // Create a Cattle model
 const Cattle = mongoose.model('Cattle', cattleSchema);
 
-// Middleware
-app.use(express.json());
-
 // Routes
 app.get('/cattles', async (req, res) => {
   try {
@@ -121,7 +113,6 @@ app.get('/cattles', async (req, res) => {
   }
 });
 
-// new cattle
 app.post('/cattle', async (req, res) => {
   const newCattleData = req.body;
   try {
@@ -138,8 +129,75 @@ app.post('/cattle', async (req, res) => {
   }
 });
 
+// Create a milk schema
+const milkSchema = new mongoose.Schema({
+  timeOfDay: { type: String, required: true },
+  amount: { type: Number, required: true },
+  date: { type: Date, default: Date.now },
+  usage: { type: String, required: true },
+  quantity: { type: Number, required: true },
+});
 
+const Milk = mongoose.model('Milk', milkSchema);
 
+app.get('/timeOfDayOptions', (req, res) => {
+  const options = [
+    { label: 'Select Time of Day', value: '' },
+    { label: 'Morning', value: 'Morning' },
+    { label: 'Afternoon', value: 'Afternoon' },
+    { label: 'Evening', value: 'Evening' },
+  ];
+  res.json(options);
+});
+
+app.get('/usageOptions', (req, res) => {
+  const options = [
+    { label: 'Select Usage', value: '' },
+    { label: 'Cattle Feeding', value: 'Cattle Feeding' },
+    { label: 'Selling', value: 'Selling' },
+    { label: 'Home Consumption', value: 'Home Consumption' },
+  ];
+  res.json(options);
+});
+
+app.post('/recordMilkUsage', async (req, res) => {
+  const { usage, quantity } = req.body;
+
+  try {
+    const milkProduction = await Milk.findOne().sort({ date: -1 }).limit(1).exec();
+    if (!milkProduction) {
+      return res.status(404).json({ error: 'No milk production record found' });
+    }
+
+    if (!usage || !quantity) {
+      return res.status(400).json({ error: 'Usage and quantity are required fields' });
+    }
+
+    const milkUsage = new Milk({
+      timeOfDay: milkProduction.timeOfDay,
+      amount: milkProduction.amount,
+      date: milkProduction.date,
+      usage,
+      quantity,
+    });
+
+    if (milkUsage.quantity > milkProduction.amount) {
+      return res.status(400).json({ error: 'Milk usage cannot exceed milk production' });
+    }
+
+    await milkUsage.save();
+    res.json({ message: 'Milk usage recorded successfully.' });
+  } catch (error) {
+    console.error('Failed to record milk usage:', error);
+    res.status(500).json({ error: 'Failed to record milk usage.' });
+  }
+});
+
+// ... (other routes and middleware)
+
+app.get('/generateMilkStatements', (req, res) => {
+  res.json({ message: 'Milk statements generated successfully.' });
+});
 
 // Start the server
 app.listen(PORT, () => {
