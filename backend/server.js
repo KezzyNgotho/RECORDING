@@ -134,54 +134,76 @@ const milkSchema = new mongoose.Schema({
   timeOfDay: { type: String, required: true },
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now },
-  usage: { type: String, required: true },
-  quantity: { type: Number, required: true },
 });
 
 const Milk = mongoose.model('Milk', milkSchema);
 
-app.get('/timeOfDayOptions', (req, res) => {
-  const options = [
-    { label: 'Select Time of Day', value: '' },
-    { label: 'Morning', value: 'Morning' },
-    { label: 'Afternoon', value: 'Afternoon' },
-    { label: 'Evening', value: 'Evening' },
-  ];
-  res.json(options);
-});
+// Milk production
+app.post('/recordMilkProduction', async (req, res) => {
+  const { timeOfDay, amount, date } = req.body;
 
-app.get('/usageOptions', (req, res) => {
-  const options = [
-    { label: 'Select Usage', value: '' },
-    { label: 'Cattle Feeding', value: 'Cattle Feeding' },
-    { label: 'Selling', value: 'Selling' },
-    { label: 'Home Consumption', value: 'Home Consumption' },
-  ];
-  res.json(options);
+  // Validate the required fields
+  if (!timeOfDay) {
+    return res.status(400).json({ error: 'Please select a time of day' });
+  }
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Please enter the amount' });
+  }
+
+  try {
+    // Create a new Milk object
+    const milkProduction = new Milk({
+      timeOfDay,
+      amount,
+      date,
+    });
+
+    // Save the milk production record to the database
+    await milkProduction.save();
+
+    res.status(200).json({ message: 'Milk production recorded successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to record milk production' });
+  }
 });
 
 app.post('/recordMilkUsage', async (req, res) => {
   const { usage, quantity } = req.body;
 
   try {
-    const milkProduction = await Milk.findOne().sort({ date: -1 }).limit(1).exec();
-    if (!milkProduction) {
-      return res.status(404).json({ error: 'No milk production record found' });
-    }
+    // Calculate the total milk produced per time
+    const totalMilkProduced = await Milk.aggregate([
+      {
+        $group: {
+          _id: '$timeOfDay',
+          totalAmount: { $sum: '$amount' },
+        },
+      },
+    ]);
 
+    const milkProductionPerTime = {};
+    totalMilkProduced.forEach((milk) => {
+      milkProductionPerTime[milk._id] = milk.totalAmount;
+    });
+
+    // Validate the required fields
     if (!usage || !quantity) {
       return res.status(400).json({ error: 'Usage and quantity are required fields' });
     }
 
+    const timeOfDay = Object.keys(milkProductionPerTime)[0]; // Assuming there is only one time of day recorded
+
     const milkUsage = new Milk({
-      timeOfDay: milkProduction.timeOfDay,
-      amount: milkProduction.amount,
-      date: milkProduction.date,
+      timeOfDay,
+      amount: milkProductionPerTime[timeOfDay],
+      date: new Date(),
       usage,
       quantity,
     });
 
-    if (milkUsage.quantity > milkProduction.amount) {
+    if (milkUsage.quantity > milkUsage.amount) {
       return res.status(400).json({ error: 'Milk usage cannot exceed milk production' });
     }
 
@@ -193,7 +215,6 @@ app.post('/recordMilkUsage', async (req, res) => {
   }
 });
 
-// ... (other routes and middleware)
 
 app.get('/generateMilkStatements', (req, res) => {
   res.json({ message: 'Milk statements generated successfully.' });
