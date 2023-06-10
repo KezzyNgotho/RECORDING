@@ -207,8 +207,9 @@ app.post('/recordMilkUsage', async (req, res) => {
       return res.status(400).json({ error: 'Milk usage cannot exceed milk production' });
     }
 
-    await milkUsage.save();
-    res.json({ message: 'Milk usage recorded successfully.' });
+    const savedMilkUsage = await milkUsage.save(); // Save the milk usage record to the database
+
+    res.json({ message: 'Milk usage recorded successfully.', milkUsage: savedMilkUsage });
   } catch (error) {
     console.error('Failed to record milk usage:', error);
     res.status(500).json({ error: 'Failed to record milk usage.' });
@@ -216,10 +217,58 @@ app.post('/recordMilkUsage', async (req, res) => {
 });
 
 
+
 app.get('/generateMilkStatements', (req, res) => {
   res.json({ message: 'Milk statements generated successfully.' });
+
 });
 
+
+//expenses
+const expenseSchema = new mongoose.Schema({
+  description: String,
+  amount: Number,
+  date: Date,
+});
+
+const Expense = mongoose.model('Expense', expenseSchema);
+
+app.use(express.json());
+
+// Route to create a new expense record
+app.post('/expenses', (req, res) => {
+  const { description, amount, date } = req.body;
+
+  // Create a new Expense object
+  const expense = new Expense({
+    description,
+    amount,
+    date,
+  });
+
+  // Save the expense record to the database
+  expense
+    .save()
+    .then((savedExpense) => {
+      res.status(200).json(savedExpense);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to save the expense record' });
+    });
+});
+
+// Route to get all expense records
+app.get('/expenses', (req, res) => {
+  Expense.find()
+    .then((expenses) => {
+      res.status(200).json(expenses);
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to retrieve expense records' });
+    });
+});
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

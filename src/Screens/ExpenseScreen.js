@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState ,useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import DatePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
 import { saveExpenseStatement } from '../components/expense';
+import axios from "axios"
 
 const ExpenseScreen = () => {
   const [expenses, setExpenses] = useState([]);
@@ -21,18 +22,68 @@ const ExpenseScreen = () => {
     date: new Date() // Initialize with default date
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const fetchExpenses = () => {
+    axios
+      .get('http://192.168.0.103:4000/expenses')
+      .then((response) => {
+        setExpenses(response.data);
+        calculateTotalExpenses(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error retrieving expense records',
+          position: 'bottom',
+        });
+      });
+  };
+
+ /*  const calculateTotalExpenses = (expenses) => {
+    const total = expenses.reduce((total, expense) => total + parseFloat(expense.amount), 0);
+    setTotalExpenses(total);
+  }; */
+
+
 
   const handleAddExpense = () => {
     if (newExpense.description && newExpense.amount && newExpense.date) {
-      setExpenses([...expenses, newExpense]);
-      setNewExpense({ description: '', amount: '', date: new Date() }); // Reset date to default
-
-      // Show success notification
-      Toast.show({
-        type: 'success',
-        text1: 'Expense recorded',
-        position: 'bottom',
-      });
+      const expenseData = {
+        description: newExpense.description,
+        amount: newExpense.amount,
+        date: newExpense.date.toISOString(), // Convert date to ISO string format
+      };
+  
+      // Send POST request to save the expense
+      
+      axios.post('http://192.168.0.103:4000/expenses', expenseData)
+        .then(response => {
+          // Handle successful response
+          setExpenses([...expenses, newExpense]);
+          setNewExpense({ description: '', amount: '', date: new Date() }); // Reset date to default
+  
+          // Show success notification
+          Toast.show({
+            type: 'success',
+            text1: 'Expense recorded',
+            position: 'bottom',
+          });
+        })
+        .catch(error => {
+          // Handle error
+          console.error(error);
+          // Show error notification
+          Toast.show({
+            type: 'error',
+            text1: 'Error saving expense',
+            text2: 'Please try again',
+            position: 'bottom',
+          });
+        });
     } else {
       // Show error notification if any field is missing
       Toast.show({
@@ -43,6 +94,7 @@ const ExpenseScreen = () => {
       });
     }
   };
+  
 
 
   const handleGenerateStatement = () => {
