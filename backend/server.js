@@ -137,6 +137,25 @@ const milkSchema = new mongoose.Schema({
 });
 
 const Milk = mongoose.model('Milk', milkSchema);
+app.get('/timeOfDayOptions', (req, res) => {
+  const options = [
+    { label: 'Select Time of Day', value: '' },
+    { label: 'Morning', value: 'Morning' },
+    { label: 'Afternoon', value: 'Afternoon' },
+    { label: 'Evening', value: 'Evening' },
+  ];
+  res.json(options);
+});
+
+app.get('/usageOptions', (req, res) => {
+  const options = [
+    { label: 'Select Usage', value: '' },
+    { label: 'Cattle Feeding', value: 'Cattle Feeding' },
+    { label: 'Selling', value: 'Selling' },
+    { label: 'Home Consumption', value: 'Home Consumption' },
+  ];
+  res.json(options);
+});
 
 // Milk production
 app.post('/recordMilkProduction', async (req, res) => {
@@ -269,6 +288,63 @@ app.get('/expenses', (req, res) => {
       res.status(500).json({ error: 'Failed to retrieve expense records' });
     });
 });
+//notifications
+const notificationSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  datetime: Date,
+});
+
+// Create the Notification model
+const Notification = mongoose.model('Notification', notificationSchema);
+
+// Set up routes
+
+app.use(express.json());
+
+// Fetch all notifications
+app.get('/notifications', async (req, res) => {
+  try {
+    const notifications = await Notification.find();
+    res.json(notifications);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add a new notification
+app.post('/notifications', async (req, res) => {
+  try {
+    const { title, description, datetime } = req.body;
+    const notification = new Notification({ title, description, datetime });
+    await notification.save();
+    res.status(201).json(notification);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+const cron = require('node-cron');
+
+// Cron job to check for due notifications every minute
+cron.schedule('* * * * *', async () => {
+  try {
+    const currentDateTime = new Date();
+
+    // Find notifications whose datetime is due
+    const dueNotifications = await Notification.find({ datetime: { $lte: currentDateTime } });
+
+    // Send notifications to users
+    dueNotifications.forEach((notification) => {
+      // TODO: Implement notification sending logic
+      console.log('Sending notification:', notification);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

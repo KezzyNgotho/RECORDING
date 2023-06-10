@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import axios from 'axios'; // Import Axios library
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -24,52 +25,46 @@ const NotificationScreen = () => {
   const [showDateTimePicker, setShowDateTimePicker] = useState(false);
 
   useEffect(() => {
-    // Simulating fetching notifications from an API
-    fetchNotifications()
-      .then((data) => setNotifications(data))
-      .catch((error) => console.log('Error fetching notifications:', error));
+    fetchNotifications();
   }, []);
 
-  const fetchNotifications = () => {
-    // Simulated API call to fetch notifications
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const data = [
-          {
-            id: '1',
-            title: 'Notification 1',
-            description: 'This is the first notification.',
-            datetime: '2023-05-20 10:00',
-          },
-          {
-            id: '2',
-            title: 'Notification 2',
-            description: 'This is the second notification.',
-            datetime: '2023-05-21 14:30',
-          },
-          {
-            id: '3',
-            title: 'Notification 3',
-            description: 'This is the third notification.',
-            datetime: '2023-05-22 19:45',
-          },
-          {
-            id: '4',
-            title: 'Notification 4',
-            description: 'This is the fourth notification.',
-            datetime: '2023-05-23 08:15',
-          },
-          {
-            id: '5',
-            title: 'Notification 5',
-            description: 'This is the fifth notification.',
-            datetime: '2023-05-24 16:00',
-          },
-        ];
-        resolve(data);
-      }, 1000);
-    });
+  const fetchNotifications = async () => {
+    try {
+      const response = await axios.get('http://192.168.0.103:4000/notifications');
+      setNotifications(response.data);
+    } catch (error) {
+      console.log('Error fetching notifications:', error);
+    }
   };
+
+  const handleAddNotification  = async () => {
+    try {
+      const response = await axios.post('http://192.168.0.103:4000/notifications', {
+        title: newNotification.title,
+        description: newNotification.description,
+        datetime: newNotification.datetime,
+      });
+      const notification = response.data;
+      setNotifications([...notifications, notification]);
+      setNewNotification({ id: '', title: '', description: '', datetime: '' });
+      setModalVisible(false);
+    } catch (error) {
+      console.log('Error adding notification:', error);
+    }
+  };
+
+  // Rest of the code...
+
+  /* const handleAddNotification = () => {
+    if (newNotification.title && newNotification.description && newNotification.datetime) {
+      addNotification();
+    }
+  }; */
+
+ 
+
+
+
 
   const renderNotificationItem = ({ item }) => {
     return (
@@ -95,6 +90,25 @@ const NotificationScreen = () => {
     }
   };
 
+  const startCronJob = () => {
+    cron.schedule('* * * * *', async () => {
+      try {
+        const currentDateTime = new Date();
+
+        // Find notifications whose datetime is due
+        const dueNotifications = notifications.filter(notification => new Date(notification.datetime) <= currentDateTime);
+
+        // Send notifications to users
+        dueNotifications.forEach((notification) => {
+          // TODO: Implement notification sending logic
+          console.log('Sending notification:', notification);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  };
+/* 
   const handleAddNotification = () => {
     if (newNotification.title && newNotification.description && newNotification.datetime) {
       const id = (notifications.length + 1).toString();
@@ -102,7 +116,7 @@ const NotificationScreen = () => {
       setNewNotification({ id: '', title: '', description: '', datetime: '' });
       setModalVisible(false);
     }
-  };
+  }; */
 
   return (
     <SafeAreaView style={styles.container}>
