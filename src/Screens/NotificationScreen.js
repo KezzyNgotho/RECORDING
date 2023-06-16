@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import axios from 'axios'; // Import Axios library
+import axios from 'axios';
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -30,43 +30,35 @@ const NotificationScreen = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('http://192.168.0.101:4000/notifications');
+      const response = await axios.get(
+        'http://192.168.0.101:4000/notifications',
+      );
       setNotifications(response.data);
     } catch (error) {
       console.log('Error fetching notifications:', error);
     }
   };
 
-  const handleAddNotification  = async () => {
+  const handleAddNotification = async () => {
     try {
-      const response = await axios.post('http://192.168.0.101:4000/notifications', {
-        title: newNotification.title,
-        description: newNotification.description,
-        datetime: newNotification.datetime,
-      });
+      const response = await axios.post(
+        'http://192.168.0.101:4000/notifications',
+        {
+          title: newNotification.title,
+          description: newNotification.description,
+          datetime: newNotification.datetime,
+        },
+      );
       const notification = response.data;
       setNotifications([...notifications, notification]);
-      setNewNotification({ id: '', title: '', description: '', datetime: '' });
+      setNewNotification({id: '', title: '', description: '', datetime: ''});
       setModalVisible(false);
     } catch (error) {
       console.log('Error adding notification:', error);
     }
   };
 
-  // Rest of the code...
-
-  /* const handleAddNotification = () => {
-    if (newNotification.title && newNotification.description && newNotification.datetime) {
-      addNotification();
-    }
-  }; */
-
- 
-
-
-
-
-  const renderNotificationItem = ({ item }) => {
+  const renderNotificationItem = ({item}) => {
     return (
       <TouchableOpacity style={styles.notificationItem}>
         <Text style={styles.notificationTitle}>{item.title}</Text>
@@ -76,7 +68,7 @@ const NotificationScreen = () => {
     );
   };
 
-  const keyExtractor = (item) => item.id;
+  const keyExtractor = item => item.id;
 
   const openDateTimePicker = () => {
     setShowDateTimePicker(true);
@@ -86,7 +78,7 @@ const NotificationScreen = () => {
     setShowDateTimePicker(false);
     if (selectedDateTime) {
       const formattedDateTime = selectedDateTime.toLocaleString();
-      setNewNotification({ ...newNotification, datetime: formattedDateTime });
+      setNewNotification({...newNotification, datetime: formattedDateTime});
     }
   };
 
@@ -96,10 +88,12 @@ const NotificationScreen = () => {
         const currentDateTime = new Date();
 
         // Find notifications whose datetime is due
-        const dueNotifications = notifications.filter(notification => new Date(notification.datetime) <= currentDateTime);
+        const dueNotifications = notifications.filter(
+          notification => new Date(notification.datetime) <= currentDateTime,
+        );
 
         // Send notifications to users
-        dueNotifications.forEach((notification) => {
+        dueNotifications.forEach(notification => {
           // TODO: Implement notification sending logic
           console.log('Sending notification:', notification);
         });
@@ -108,15 +102,6 @@ const NotificationScreen = () => {
       }
     });
   };
-/* 
-  const handleAddNotification = () => {
-    if (newNotification.title && newNotification.description && newNotification.datetime) {
-      const id = (notifications.length + 1).toString();
-      setNotifications([...notifications, { ...newNotification, id }]);
-      setNewNotification({ id: '', title: '', description: '', datetime: '' });
-      setModalVisible(false);
-    }
-  }; */
 
   return (
     <SafeAreaView style={styles.container}>
@@ -127,9 +112,13 @@ const NotificationScreen = () => {
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.notificationList}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<Text style={styles.emptyListText}>No notifications found.</Text>}
+        ListEmptyComponent={
+          <Text style={styles.emptyListText}>No notifications found.</Text>
+        }
       />
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>Add Notification</Text>
       </TouchableOpacity>
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -140,18 +129,26 @@ const NotificationScreen = () => {
               style={styles.input}
               placeholder="Title"
               value={newNotification.title}
-              onChangeText={(text) => setNewNotification({ ...newNotification, title: text })}
+              onChangeText={text =>
+                setNewNotification({...newNotification, title: text})
+              }
             />
             <TextInput
               style={styles.input}
               placeholder="Description"
               value={newNotification.description}
-              onChangeText={(text) => setNewNotification({ ...newNotification, description: text })}
+              onChangeText={text =>
+                setNewNotification({...newNotification, description: text})
+              }
             />
-            <TouchableOpacity style={styles.datetimeButton} onPress={openDateTimePicker}>
+            <TouchableOpacity
+              style={styles.datetimeButton}
+              onPress={openDateTimePicker}>
               <Text style={styles.datetimeButtonText}>Select Date & Time</Text>
             </TouchableOpacity>
-            <Text style={styles.selectedDatetime}>{newNotification.datetime}</Text>
+            <Text style={styles.selectedDatetime}>
+              {newNotification.datetime}
+            </Text>
             {showDateTimePicker && (
               <DateTimePicker
                 value={new Date()}
@@ -161,10 +158,14 @@ const NotificationScreen = () => {
                 onChange={handleDateTimeChange}
               />
             )}
-            <TouchableOpacity style={styles.saveButton} onPress={handleAddNotification}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleAddNotification}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setModalVisible(false)}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
