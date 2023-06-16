@@ -447,6 +447,49 @@ app.get('/sales/monthly', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch monthly sales data' });
   }
 });
+//profit loss
+const profitLossSchema = new mongoose.Schema({
+  month: String,
+  profitLoss: Number,
+});
+
+const ProfitLoss = mongoose.model('ProfitLoss', profitLossSchema);
+
+// API endpoints
+
+// Fetch profit/loss data
+app.get('/profit-loss', async (req, res) => {
+  try {
+    const data = await ProfitLoss.find();
+    res.json(data);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
+});
+
+// Calculate and save profit/loss data
+app.post('/profit-loss', async (req, res) => {
+  try {
+    const { salesData, expensesData, labels } = req.body;
+
+    // Calculate profit/loss for each month
+    const profitLossData = salesData.map((sale, index) => sale - expensesData[index]);
+
+    // Save profit/loss data to the database
+    for (let i = 0; i < labels.length; i++) {
+      const month = labels[i];
+      const profitLoss = profitLossData[i];
+
+      await ProfitLoss.create({ month, profitLoss });
+    }
+
+    res.status(201).json({ message: 'Profit/loss data saved successfully' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to save data' });
+  }
+});
 
 
 app.listen(PORT, () => {
