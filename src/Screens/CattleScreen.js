@@ -32,7 +32,7 @@ const CattleScreen = () => {
   useEffect(() => {
     const fetchCattleData = async () => {
       try {
-        const response = await fetch('http://192.168.0.103:4000/cattles');
+        const response = await fetch('http://192.168.0.101:4000/cattles');
         if (!response.ok) {
           throw new Error('Failed to fetch cattle data');
         }
@@ -99,7 +99,7 @@ const CattleScreen = () => {
 
     try {
       const response = await axios.post(
-        'http://192.168.0.103:4000/cattle',
+        'http://192.168.0.101:4000/cattle',
         newCattleData,
       );
       const newCattle = response.data;

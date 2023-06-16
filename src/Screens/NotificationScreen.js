@@ -30,7 +30,7 @@ const NotificationScreen = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('http://192.168.0.103:4000/notifications');
+      const response = await axios.get('http://192.168.0.101:4000/notifications');
       setNotifications(response.data);
     } catch (error) {
       console.log('Error fetching notifications:', error);
@@ -39,7 +39,7 @@ const NotificationScreen = () => {
 
   const handleAddNotification  = async () => {
     try {
-      const response = await axios.post('http://192.168.0.103:4000/notifications', {
+      const response = await axios.post('http://192.168.0.101:4000/notifications', {
         title: newNotification.title,
         description: newNotification.description,
         datetime: newNotification.datetime,

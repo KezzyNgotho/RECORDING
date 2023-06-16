@@ -1,40 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-
 
 const SalesScreen = () => {
   const [salesData, setSalesData] = useState([]);
   const [searchDate, setSearchDate] = useState('');
+  const [totalWeeklySales, setTotalWeeklySales] = useState(0);
+  const [totalMonthlySales, setTotalMonthlySales] = useState(0);
 
-  const handleCalculateSales = () => {
-    const currentDate = new Date().toLocaleDateString();
-    const currentTime = new Date().toLocaleTimeString();
-    const sales = calculateSales();
-    const newSalesData = [...salesData, { date: currentDate, time: currentTime, sales }];
-    setSalesData(newSalesData);
-  };
+  useEffect(() => {
+    fetchSalesData();
+  }, []);
 
-  const calculateSales = () => {
-    // Replace with your calculation logic
-    const milkSold = 10; // Example value, replace with your actual data source
-    const pricePerLiter = 5; // Example value, replace with your actual data source
-    const sales = milkSold * pricePerLiter;
-    return sales;
+  const fetchSalesData = async () => {
+    try {
+      const response = await fetch('http://192.168.0.101:4000/sales/daily');
+      const data = await response.json();
+      if (response.ok) {
+        setSalesData(data);
+        calculateTotalSales(data);
+      } else {
+        console.error('Failed to fetch sales data');
+      }
+    } catch (error) {
+      console.error('Failed to fetch sales data', error);
+    }
   };
 
   const handleSearchDate = () => {
     const selectedSales = salesData.find((item) => item.date === searchDate);
     if (selectedSales) {
-      // Display sales for the selected date
-      console.log(`Sales on ${searchDate}: ${selectedSales.sales}`);
+      console.log(`Sales on ${searchDate}: ${selectedSales.totalAmount}`);
     } else {
       console.log('No sales found for the selected date.');
     }
   };
 
-  const calculateTotalSales = () => {
-    const totalSales = salesData.reduce((sum, item) => sum + item.sales, 0);
-    return totalSales;
+  const calculateTotalSales = (data) => {
+    const totalWeeklySales = data.reduce((sum, item) => sum + item.totalAmount, 0);
+    const totalMonthlySales = data.reduce((sum, item) => sum + item.totalAmount, 0);
+    setTotalWeeklySales(totalWeeklySales);
+    setTotalMonthlySales(totalMonthlySales);
   };
 
   const renderSalesData = () => {
@@ -42,24 +47,20 @@ const SalesScreen = () => {
       <View key={index} style={styles.salesCard}>
         <Text style={styles.salesDate}>Date: {item.date}</Text>
         <Text style={styles.salesTime}>Time: {item.time}</Text>
-        <Text style={styles.salesAmount}>Sales: {item.sales}</Text>
+        <Text style={styles.salesAmount}>Total Amount: ${item.totalAmount.toFixed(2)}</Text>
       </View>
     ));
   };
 
   const handleGenerateStatement = () => {
-    // Add your logic to generate the sales statement
     console.log('Generating sales statement...');
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Daily Sales</Text>
-      <TouchableOpacity style={styles.recordButton} onPress={handleCalculateSales}>
-        <Text style={styles.recordButtonText}>Calculate Sales</Text>
-      </TouchableOpacity>
-      <Text style={styles.salesTotal}>Weekly Sales: {calculateTotalSales()}</Text>
-      <Text style={styles.salesTotal}>Monthly Sales: {calculateTotalSales()}</Text>
+      <Text style={styles.salesTotal}>Weekly Sales: ${totalWeeklySales.toFixed(2)}</Text>
+      <Text style={styles.salesTotal}>Monthly Sales: ${totalMonthlySales.toFixed(2)}</Text>
 
       <Text style={styles.title}>Search by Date</Text>
       <TextInput
@@ -73,24 +74,25 @@ const SalesScreen = () => {
       </TouchableOpacity>
 
       <Text style={styles.title}>Sales Statement</Text>
-      <ScrollView>
-        {renderSalesData()}
-      </ScrollView>
+      {renderSalesData()}
 
       <TouchableOpacity style={styles.recordButton} onPress={handleGenerateStatement}>
         <Text style={styles.recordButtonText}>Generate Statement</Text>
       </TouchableOpacity>
-
-     
-    </View>
+    </ScrollView>
   );
 };
+
+
+
+
+  
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor:'white'
+    backgroundColor: 'white'
   },
   title: {
     fontSize: 20,

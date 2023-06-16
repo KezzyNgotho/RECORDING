@@ -8,6 +8,7 @@ import SalesScreen from '../Screens/SalesScreen';
 import ExpenseScreen from '../Screens/ExpenseScreen';
 import NotificationScreen from '../Screens/NotificationScreen';
 import SidebarDrawer from '../Screens/SidebarDrawer';
+import Sidebar from './Sidebar';
 
 
 const Stack = createStackNavigator();
@@ -23,6 +24,7 @@ const HomeStack = () => {
       <Stack.Screen name="Expenses" component={ExpenseScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="SidebarDrawer" component={SidebarDrawer} />
+      <Stack.Screen name="Sidebarr" component={Sidebar} />
    
     </Stack.Navigator>
   );

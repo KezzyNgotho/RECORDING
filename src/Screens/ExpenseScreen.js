@@ -29,7 +29,7 @@ const ExpenseScreen = () => {
 
   const fetchExpenses = () => {
     axios
-      .get('http://192.168.0.103:4000/expenses')
+      .get('http://192.168.0.101:4000/expenses')
       .then((response) => {
         setExpenses(response.data);
         calculateTotalExpenses(response.data);
@@ -61,7 +61,7 @@ const ExpenseScreen = () => {
   
       // Send POST request to save the expense
       
-      axios.post('http://192.168.0.103:4000/expenses', expenseData)
+      axios.post('http://192.168.0.101:4000/expenses', expenseData)
         .then(response => {
           // Handle successful response
           setExpenses([...expenses, newExpense]);

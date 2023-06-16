@@ -31,7 +31,7 @@ const MilkScreen = () => {
 
   const fetchTimeOfDayOptions = () => {
     axios
-      .get('http://192.168.0.103:4000/timeOfDayOptions')
+      .get('http://192.168.0.101:4000/timeOfDayOptions')
       .then((response) => {
         setTimeOfDayOptions(response.data);
       })
@@ -42,7 +42,7 @@ const MilkScreen = () => {
 
   const fetchUsageOptions = () => {
     axios
-      .get('http://192.168.0.103:4000/usageOptions')
+      .get('http://192.168.0.101:4000/usageOptions')
       .then((response) => {
         setUsageOptions(response.data);
       })
@@ -89,7 +89,7 @@ const MilkScreen = () => {
     }
 
     axios
-      .post('http://192.168.0.103:4000/recordMilkProduction', {
+      .post('http://192.168.0.101:4000/recordMilkProduction', {
         timeOfDay,
         amount,
         date,
@@ -119,7 +119,7 @@ const MilkScreen = () => {
     }
 
     axios
-      .post('http://192.168.0.103:4000/recordMilkUsage', {
+      .post('http://192.168.0.101:4000/recordMilkUsage', {
         usage,
         quantity,
       })
@@ -137,7 +137,7 @@ const MilkScreen = () => {
 
   const handleGenerateStatements = () => {
     axios
-      .get('http://192.168.0.103:4000/generateMilkStatements')
+      .get('http://192.168.0.101:4000/generateMilkStatements')
       .then((response) => {
         console.log(response.data);
         Alert.alert('Success', 'Milk statements generated successfully');

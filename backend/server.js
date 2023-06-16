@@ -1,16 +1,17 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 4000; // Use any port number you prefer
+const PORT = 4000;
 
 // Connect to MongoDB
 mongoose
   .connect('mongodb+srv://keziengotho18:kezie5585@cluster0.peasyvh.mongodb.net/', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 15000, // Set a shorter timeout for server selection
-    socketTimeoutMS: 45000, // Set a longer socket timeout
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
   })
   .then(() => {
     console.log('Connected to MongoDB');
@@ -19,23 +20,19 @@ mongoose
     console.error('Failed to connect to MongoDB:', error);
   });
 
-// Body parsing middleware
 app.use(express.json());
 
-// Schema for the user
 const userSchema = new mongoose.Schema({
   farmName: String,
   farmOwner: String,
-  email: { type: String, index: true }, // Add index: true to the email field
+  email: { type: String, index: true },
   password: String,
   phoneNumber: String,
   address: String,
 });
 
-// Model for the user
 const User = mongoose.model('User', userSchema);
 
-// Handle user sign-up
 app.post('/signup', async (req, res) => {
   try {
     const { farmName, farmOwner, email, password, phoneNumber, address } = req.body;
@@ -45,7 +42,6 @@ app.post('/signup', async (req, res) => {
       return res.status(409).json({ error: 'Email already exists' });
     }
 
-    // Create a new user instance
     const newUser = new User({
       farmName,
       farmOwner,
@@ -55,7 +51,6 @@ app.post('/signup', async (req, res) => {
       address,
     });
 
-    // Save the user to the database
     await newUser.save();
 
     res.status(200).json({ message: 'User signed up successfully' });
@@ -65,7 +60,6 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Handle user login
 app.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -75,10 +69,8 @@ app.post('/login', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Find the user
     const user = await User.findOne({ email });
 
-    // Check if the password matches
     if (user.password !== password) {
       return res.status(401).json({ error: 'Invalid password' });
     }
@@ -90,7 +82,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Create a Cattle schema
 const cattleSchema = new mongoose.Schema({
   name: String,
   age: String,
@@ -99,10 +90,8 @@ const cattleSchema = new mongoose.Schema({
   isPregnant: Boolean,
 });
 
-// Create a Cattle model
 const Cattle = mongoose.model('Cattle', cattleSchema);
 
-// Routes
 app.get('/cattles', async (req, res) => {
   try {
     const cattleList = await Cattle.find();
@@ -116,7 +105,6 @@ app.get('/cattles', async (req, res) => {
 app.post('/cattle', async (req, res) => {
   const newCattleData = req.body;
   try {
-    // Validate the required fields
     if (!newCattleData.name || !newCattleData.age || !newCattleData.breed || !newCattleData.gender) {
       return res.status(400).json({ error: 'Required fields are missing' });
     }
@@ -129,7 +117,6 @@ app.post('/cattle', async (req, res) => {
   }
 });
 
-// Create a milk schema
 const milkSchema = new mongoose.Schema({
   timeOfDay: { type: String, required: true },
   amount: { type: Number, required: true },
@@ -137,6 +124,7 @@ const milkSchema = new mongoose.Schema({
 });
 
 const Milk = mongoose.model('Milk', milkSchema);
+
 app.get('/timeOfDayOptions', (req, res) => {
   const options = [
     { label: 'Select Time of Day', value: '' },
@@ -146,6 +134,46 @@ app.get('/timeOfDayOptions', (req, res) => {
   ];
   res.json(options);
 });
+
+app.post('/recordMilkProduction', async (req, res) => {
+  const { timeOfDay, amount, date } = req.body;
+
+  if (!timeOfDay) {
+    return res.status(400).json({ error: 'Please select a time of day' });
+  }
+
+  if (!amount) {
+    return res.status(400).json({ error: 'Please enter the amount' });
+  }
+
+  try {
+    const milkProduction = new Milk({
+      timeOfDay,
+      amount,
+      date,
+    });
+
+    await milkProduction.save();
+
+    res.status(200).json({ message: 'Milk production recorded successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to record milk production' });
+  }
+});
+
+app.get('/generateMilkStatements', (req, res) => {
+  res.json({ message: 'Milk statements generated successfully.' });
+});
+
+const milkUsageSchema = new mongoose.Schema({
+  timeOfDay: String,
+  date: { type: Date, default: Date.now },
+  usage: String,
+  quantity: Number,
+});
+
+const MilkUsage = mongoose.model('MilkUsage', milkUsageSchema);
 
 app.get('/usageOptions', (req, res) => {
   const options = [
@@ -157,42 +185,10 @@ app.get('/usageOptions', (req, res) => {
   res.json(options);
 });
 
-// Milk production
-app.post('/recordMilkProduction', async (req, res) => {
-  const { timeOfDay, amount, date } = req.body;
-
-  // Validate the required fields
-  if (!timeOfDay) {
-    return res.status(400).json({ error: 'Please select a time of day' });
-  }
-
-  if (!amount) {
-    return res.status(400).json({ error: 'Please enter the amount' });
-  }
-
-  try {
-    // Create a new Milk object
-    const milkProduction = new Milk({
-      timeOfDay,
-      amount,
-      date,
-    });
-
-    // Save the milk production record to the database
-    await milkProduction.save();
-
-    res.status(200).json({ message: 'Milk production recorded successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to record milk production' });
-  }
-});
-
 app.post('/recordMilkUsage', async (req, res) => {
   const { usage, quantity } = req.body;
 
   try {
-    // Calculate the total milk produced per time
     const totalMilkProduced = await Milk.aggregate([
       {
         $group: {
@@ -202,21 +198,16 @@ app.post('/recordMilkUsage', async (req, res) => {
       },
     ]);
 
-    const milkProductionPerTime = {};
-    totalMilkProduced.forEach((milk) => {
-      milkProductionPerTime[milk._id] = milk.totalAmount;
-    });
-
-    // Validate the required fields
     if (!usage || !quantity) {
       return res.status(400).json({ error: 'Usage and quantity are required fields' });
     }
 
-    const timeOfDay = Object.keys(milkProductionPerTime)[0]; // Assuming there is only one time of day recorded
+    const timeOfDay = totalMilkProduced[0]._id;
+    const milkProduction = totalMilkProduced[0].totalAmount;
 
-    const milkUsage = new Milk({
+    const milkUsage = new MilkUsage({
       timeOfDay,
-      amount: milkProductionPerTime[timeOfDay],
+      amount: milkProduction,
       date: new Date(),
       usage,
       quantity,
@@ -226,7 +217,7 @@ app.post('/recordMilkUsage', async (req, res) => {
       return res.status(400).json({ error: 'Milk usage cannot exceed milk production' });
     }
 
-    const savedMilkUsage = await milkUsage.save(); // Save the milk usage record to the database
+    const savedMilkUsage = await milkUsage.save();
 
     res.json({ message: 'Milk usage recorded successfully.', milkUsage: savedMilkUsage });
   } catch (error) {
@@ -235,15 +226,6 @@ app.post('/recordMilkUsage', async (req, res) => {
   }
 });
 
-
-
-app.get('/generateMilkStatements', (req, res) => {
-  res.json({ message: 'Milk statements generated successfully.' });
-
-});
-
-
-//expenses
 const expenseSchema = new mongoose.Schema({
   description: String,
   amount: Number,
@@ -252,20 +234,15 @@ const expenseSchema = new mongoose.Schema({
 
 const Expense = mongoose.model('Expense', expenseSchema);
 
-app.use(express.json());
-
-// Route to create a new expense record
 app.post('/expenses', (req, res) => {
   const { description, amount, date } = req.body;
 
-  // Create a new Expense object
   const expense = new Expense({
     description,
     amount,
     date,
   });
 
-  // Save the expense record to the database
   expense
     .save()
     .then((savedExpense) => {
@@ -277,7 +254,6 @@ app.post('/expenses', (req, res) => {
     });
 });
 
-// Route to get all expense records
 app.get('/expenses', (req, res) => {
   Expense.find()
     .then((expenses) => {
@@ -288,21 +264,15 @@ app.get('/expenses', (req, res) => {
       res.status(500).json({ error: 'Failed to retrieve expense records' });
     });
 });
-//notifications
+
 const notificationSchema = new mongoose.Schema({
   title: String,
   description: String,
   datetime: Date,
 });
 
-// Create the Notification model
 const Notification = mongoose.model('Notification', notificationSchema);
 
-// Set up routes
-
-app.use(express.json());
-
-// Fetch all notifications
 app.get('/notifications', async (req, res) => {
   try {
     const notifications = await Notification.find();
@@ -313,7 +283,6 @@ app.get('/notifications', async (req, res) => {
   }
 });
 
-// Add a new notification
 app.post('/notifications', async (req, res) => {
   try {
     const { title, description, datetime } = req.body;
@@ -325,19 +294,16 @@ app.post('/notifications', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 const cron = require('node-cron');
 
-// Cron job to check for due notifications every minute
 cron.schedule('* * * * *', async () => {
   try {
     const currentDateTime = new Date();
 
-    // Find notifications whose datetime is due
     const dueNotifications = await Notification.find({ datetime: { $lte: currentDateTime } });
 
-    // Send notifications to users
     dueNotifications.forEach((notification) => {
-      // TODO: Implement notification sending logic
       console.log('Sending notification:', notification);
     });
   } catch (error) {
@@ -345,7 +311,144 @@ cron.schedule('* * * * *', async () => {
   }
 });
 
-// Start the server
+// Milk Prices
+const milkPriceSchema = new mongoose.Schema({
+  pricePerLiter: {
+    type: Number,
+    required: true,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const MilkPrice = mongoose.model('MilkPrice', milkPriceSchema);
+
+app.post('/milk-prices', async (req, res) => {
+  try {
+    const { pricePerLiter } = req.body;
+
+    const newMilkPrice = new MilkPrice({
+      pricePerLiter,
+    });
+
+    await newMilkPrice.save();
+
+    res.status(201).json({ message: 'Milk price set successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to set milk price' });
+  }
+});
+
+const salesDataSchema = new mongoose.Schema({
+  date: {
+    type: String,
+    required: true,
+  },
+  milkSold: {
+    type: Number,
+    required: true,
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+  },
+});
+
+const SalesData = mongoose.model('SalesData', salesDataSchema);
+
+app.get('/sales/daily', async (req, res) => {
+  try {
+    const milkUsage = await MilkUsage.aggregate([
+      {
+        $match: {
+          usage: 'Selling',
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          milkSold: { $sum: '$quantity' },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const milkPrices = await MilkPrice.find();
+
+    const salesData = milkUsage.map((data) => {
+      const milkPrice = milkPrices.find(
+        (price) => price.date.toISOString().split('T')[0] === data._id
+      );
+      const totalAmount = milkPrice ? data.milkSold * milkPrice.pricePerLiter : 0;
+
+      return {
+        date: data._id,
+        milkSold: data.milkSold,
+        totalAmount,
+      };
+    });
+
+    await SalesData.insertMany(salesData);
+
+    res.status(200).json(salesData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch daily sales data' });
+  }
+});
+
+app.get('/sales/monthly', async (req, res) => {
+  try {
+    const milkUsage = await MilkUsage.aggregate([
+      {
+        $match: {
+          usage: 'Selling',
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
+          milkSold: { $sum: '$quantity' },
+        },
+      },
+      {
+        $sort: {
+          _id: 1,
+        },
+      },
+    ]);
+
+    const milkPrices = await MilkPrice.find();
+
+    const salesData = milkUsage.map((data) => {
+      const milkPrice = milkPrices.find(
+        (price) => price.date.toISOString().split('T')[0] === data._id
+      );
+      const totalAmount = milkPrice ? data.milkSold * milkPrice.pricePerLiter : 0;
+
+      return {
+        date: data._id,
+        milkSold: data.milkSold,
+        totalAmount,
+      };
+    });
+
+    await SalesData.insertMany(salesData);
+
+    res.status(200).json(salesData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch monthly sales data' });
+  }
+});
+
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

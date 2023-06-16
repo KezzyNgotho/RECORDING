@@ -36,7 +36,7 @@ const handleSignUp = async () => {
   }
 
   try {
-    const response = await axios.post('http://192.168.0.103:4000/signup', {
+    const response = await axios.post('http://192.168.0.101:4000/signup', {
       farmName,
       farmOwner,
       email,
