@@ -7,6 +7,7 @@ StyleSheet,
 ScrollView,
 TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 const SalesScreen = () => {
 const [salesData, setSalesData] = useState([]);
@@ -14,13 +15,15 @@ const [searchDate, setSearchDate] = useState('');
 const [totalWeeklySales, setTotalWeeklySales] = useState(0);
 const [totalMonthlySales, setTotalMonthlySales] = useState(0);
 
+const navigation = useNavigation();
+
 useEffect(() => {
 fetchSalesData();
 }, []);
 
 const fetchSalesData = async () => {
 try {
-const response = await fetch('http://192.168.0.101:4000/sales/daily');
+const response = await fetch('http://192.168.0.103:4000/sales/daily');
 const data = await response.json();
 if (response.ok) {
 setSalesData(data);
@@ -67,12 +70,17 @@ Total Amount: ${item.totalAmount.toFixed(2)}
 ));
 };
 
-const handleGenerateStatement = () => {
-console.log('Generating sales statement...');
-};
 
+//back
+const handleGoBack = () => {
+  navigation.goBack();
+};
 return (
 <ScrollView contentContainerStyle={styles.container}>
+<TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+<Text style={styles.backButtonText}>Back</Text>
+</TouchableOpacity>
+
 <Text style={styles.title}>Daily Sales</Text>
 <View style={styles.salesTotalContainer}>
 <Text style={styles.salesTotal}>
@@ -98,14 +106,7 @@ Monthly Sales: ${totalMonthlySales.toFixed(2)}
   <Text style={styles.title}>Sales Statement</Text>
   {renderSalesData()}
 
-  <TouchableOpacity
-    style={styles.generateStatementButton}
-    onPress={handleGenerateStatement}
-  >
-    <Text style={styles.generateStatementButtonText}>
-      Generate Statement
-    </Text>
-  </TouchableOpacity>
+  
 </ScrollView>
 );
 };
@@ -115,6 +116,16 @@ container: {
 flex: 1,
 padding: 20,
 backgroundColor: 'white',
+},
+backButton: {
+  position: 'absolute',
+  top: 20,
+  left: 20,
+  zIndex: 1,
+},
+backButtonText: {
+  color: 'black',
+  fontSize: 16,
 },
 title: {
 fontSize: 20,

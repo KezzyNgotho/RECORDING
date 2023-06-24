@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-
+const { Schema } = mongoose;
 const app = express();
 const PORT = 4000;
 
@@ -88,6 +88,7 @@ const cattleSchema = new mongoose.Schema({
   breed: String,
   gender: String,
   isPregnant: Boolean,
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
 });
 
 const Cattle = mongoose.model('Cattle', cattleSchema);
@@ -101,6 +102,7 @@ app.get('/cattles', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 app.post('/cattle', async (req, res) => {
   const newCattleData = req.body;
@@ -121,6 +123,7 @@ const milkSchema = new mongoose.Schema({
   timeOfDay: { type: String, required: true },
   amount: { type: Number, required: true },
   date: { type: Date, default: Date.now },
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
 });
 
 const Milk = mongoose.model('Milk', milkSchema);
@@ -225,11 +228,44 @@ app.post('/recordMilkUsage', async (req, res) => {
     res.status(500).json({ error: 'Failed to record milk usage.' });
   }
 });
+//notification
+const notificationSchema = new mongoose.Schema({
+  title: String,
+  description: String,
+  datetime: Date,
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
+});
 
+const Notification = mongoose.model('Notification', notificationSchema);
+
+app.get('/notifications', async (req, res) => {
+  try {
+    const notifications = await Notification.find();
+    res.json(notifications);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/notifications', async (req, res) => {
+  try {
+    const { title, description, datetime } = req.body;
+    const notification = new Notification({ title, description, datetime });
+    await notification.save();
+    res.status(201).json(notification);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Expense schema and routes
 const expenseSchema = new mongoose.Schema({
   description: String,
   amount: Number,
   date: Date,
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
 });
 
 const Expense = mongoose.model('Expense', expenseSchema);
@@ -265,53 +301,7 @@ app.get('/expenses', (req, res) => {
     });
 });
 
-const notificationSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  datetime: Date,
-});
-
-const Notification = mongoose.model('Notification', notificationSchema);
-
-app.get('/notifications', async (req, res) => {
-  try {
-    const notifications = await Notification.find();
-    res.json(notifications);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-app.post('/notifications', async (req, res) => {
-  try {
-    const { title, description, datetime } = req.body;
-    const notification = new Notification({ title, description, datetime });
-    await notification.save();
-    res.status(201).json(notification);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-const cron = require('node-cron');
-
-cron.schedule('* * * * *', async () => {
-  try {
-    const currentDateTime = new Date();
-
-    const dueNotifications = await Notification.find({ datetime: { $lte: currentDateTime } });
-
-    dueNotifications.forEach((notification) => {
-      console.log('Sending notification:', notification);
-    });
-  } catch (error) {
-    console.log(error);
-  }
-});
-
-// Milk Prices
+//milk
 const milkPriceSchema = new mongoose.Schema({
   pricePerLiter: {
     type: Number,
@@ -321,6 +311,7 @@ const milkPriceSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
 });
 
 const MilkPrice = mongoose.model('MilkPrice', milkPriceSchema);
@@ -341,6 +332,7 @@ app.post('/milk-prices', async (req, res) => {
   }
 });
 
+// Sales Data schema and routes
 const salesDataSchema = new mongoose.Schema({
   date: {
     type: String,
@@ -354,6 +346,15 @@ const salesDataSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  expenseAmount: {
+    type: Number,
+    required: true,
+  },
+  profitLoss: {
+    type: Number,
+    required: true,
+  },
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
 });
 
 const SalesData = mongoose.model('SalesData', salesDataSchema);
@@ -380,6 +381,7 @@ app.get('/sales/daily', async (req, res) => {
     ]);
 
     const milkPrices = await MilkPrice.find();
+    const expenses = await Expense.find();
 
     const salesData = milkUsage.map((data) => {
       const milkPrice = milkPrices.find(
@@ -387,10 +389,17 @@ app.get('/sales/daily', async (req, res) => {
       );
       const totalAmount = milkPrice ? data.milkSold * milkPrice.pricePerLiter : 0;
 
+      const expense = expenses.find((exp) => exp.date.toISOString().split('T')[0] === data._id);
+      const expenseAmount = expense ? expense.amount : 0;
+
+      const profitLoss = totalAmount - expenseAmount;
+
       return {
         date: data._id,
         milkSold: data.milkSold,
         totalAmount,
+        expenseAmount,
+        profitLoss,
       };
     });
 
@@ -403,18 +412,44 @@ app.get('/sales/daily', async (req, res) => {
   }
 });
 
-app.get('/sales/monthly', async (req, res) => {
+// ...
+
+const profitLossSchema = new mongoose.Schema({
+  month: {
+    type: String,
+    required: true,
+  },
+  milkSold: {
+    type: Number,
+    required: true,
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+  },
+  expenseAmount: {
+    type: Number,
+    required: true,
+  },
+  profitLoss: {
+    type: Number,
+    required: true,
+  },
+  user: { type: Schema.Types.ObjectId, ref: 'User' }, 
+});
+
+const ProfitLoss = mongoose.model('ProfitLoss', profitLossSchema);
+
+app.get('/profitloss', async (req, res) => {
   try {
-    const milkUsage = await MilkUsage.aggregate([
-      {
-        $match: {
-          usage: 'Selling',
-        },
-      },
+    const monthlySalesData = await SalesData.aggregate([
       {
         $group: {
-          _id: { $dateToString: { format: '%Y-%m', date: '$date' } },
-          milkSold: { $sum: '$quantity' },
+          _id: { $substr: ['$date', 0, 7] },
+          milkSold: { $sum: '$milkSold' },
+          totalAmount: { $sum: '$totalAmount' },
+          expenseAmount: { $sum: '$expenseAmount' },
+          profitLoss: { $sum: '$profitLoss' },
         },
       },
       {
@@ -424,70 +459,76 @@ app.get('/sales/monthly', async (req, res) => {
       },
     ]);
 
-    const milkPrices = await MilkPrice.find();
+    const months = {
+      '01': 'January',
+      '02': 'February',
+      '03': 'March',
+      '04': 'April',
+      '05': 'May',
+      '06': 'June',
+      '07': 'July',
+      '08': 'August',
+      '09': 'September',
+      '10': 'October',
+      '11': 'November',
+      '12': 'December',
+    };
 
-    const salesData = milkUsage.map((data) => {
-      const milkPrice = milkPrices.find(
-        (price) => price.date.toISOString().split('T')[0] === data._id
-      );
-      const totalAmount = milkPrice ? data.milkSold * milkPrice.pricePerLiter : 0;
-
+    const profitLossData = monthlySalesData.map((data) => {
+      const month = months[data._id.slice(5)]; // Extract month from the date and get the corresponding month name
       return {
-        date: data._id,
+        month,
         milkSold: data.milkSold,
-        totalAmount,
+        totalAmount: data.totalAmount,
+        expenseAmount: data.expenseAmount,
+        profitLoss: data.profitLoss,
       };
     });
 
-    await SalesData.insertMany(salesData);
+    await ProfitLoss.insertMany(profitLossData);
 
-    res.status(200).json(salesData);
+    res.status(200).json(profitLossData);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to fetch monthly sales data' });
-  }
-});
-//profit loss
-const profitLossSchema = new mongoose.Schema({
-  month: String,
-  profitLoss: Number,
-});
-
-const ProfitLoss = mongoose.model('ProfitLoss', profitLossSchema);
-
-// API endpoints
-
-// Fetch profit/loss data
-app.get('/profit-loss', async (req, res) => {
-  try {
-    const data = await ProfitLoss.find();
-    res.json(data);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    res.status(500).json({ error: 'Failed to fetch profit and loss data' });
   }
 });
 
-// Calculate and save profit/loss data
-app.post('/profit-loss', async (req, res) => {
+// FarmProfile schema
+const farmProfileSchema =  new mongoose.Schema({
+  name: String,
+  location: String,
+  description: String,
+  user: { type: Schema.Types.ObjectId, ref: 'User' } // Reference to the User model
+});
+
+// Models
+
+const FarmProfile = mongoose.model('FarmProfile', farmProfileSchema);
+
+// Middleware
+
+
+// Routes
+app.get('/farmProfile', async (req, res) => {
   try {
-    const { salesData, expensesData, labels } = req.body;
+    // Fetch the farm profile details from the database and populate the 'user' field
+    const farmProfile = await FarmProfile.findOne({}).populate('user').exec();
+    res.json(farmProfile);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-    // Calculate profit/loss for each month
-    const profitLossData = salesData.map((sale, index) => sale - expensesData[index]);
-
-    // Save profit/loss data to the database
-    for (let i = 0; i < labels.length; i++) {
-      const month = labels[i];
-      const profitLoss = profitLossData[i];
-
-      await ProfitLoss.create({ month, profitLoss });
-    }
-
-    res.status(201).json({ message: 'Profit/loss data saved successfully' });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ error: 'Failed to save data' });
+app.post('/farmProfile', async (req, res) => {
+  try {
+    // Update the farm profile details in the database
+    const farmProfile = await FarmProfile.findOneAndUpdate({}, req.body, { upsert: true, new: true }).exec();
+    res.json(farmProfile);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

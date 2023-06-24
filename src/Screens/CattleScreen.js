@@ -11,12 +11,20 @@ import {
   Modal,
   Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome';
+// import Icon from 'react-native-vector-icons/FontAwesome';
 import {Picker} from '@react-native-picker/picker';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
-import {BackButton} from 'react-router-dom';
+
+
+
 const CattleScreen = () => {
+
+
+
+  const navigation = useNavigation();
+  
   const [cattleList, setCattleList] = useState([]);
   const [searchText, setSearchText] = useState('');
   const [originalList, setOriginalList] = useState([]);
@@ -32,7 +40,7 @@ const CattleScreen = () => {
   useEffect(() => {
     const fetchCattleData = async () => {
       try {
-        const response = await fetch('http://192.168.0.101:4000/cattles');
+        const response = await fetch('http://192.168.0.103:4000/cattles');
         if (!response.ok) {
           throw new Error('Failed to fetch cattle data');
         }
@@ -72,8 +80,7 @@ const CattleScreen = () => {
         <Icon
           name={item.gender === 'male' ? 'mars' : 'venus'}
           size={18}
-          color="#000000"
-        />
+          color="#000000"/>
       </View>
       {item.isPregnant && (
         <View style={styles.pregnantIcon}>
@@ -99,7 +106,7 @@ const CattleScreen = () => {
 
     try {
       const response = await axios.post(
-        'http://192.168.0.101:4000/cattle',
+        'http://192.168.0.103:4000/cattle',
         newCattleData,
       );
       const newCattle = response.data;
@@ -129,10 +136,18 @@ const CattleScreen = () => {
   const femaleCattleCount = cattleList.filter(
     cattle => cattle.gender === 'female',
   ).length;
-  
+  //back
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
 
   return (
     <SafeAreaView style={styles.container}>
+    <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
+    
       <Text
         style={{
           fontSize: 20,
@@ -176,6 +191,8 @@ const CattleScreen = () => {
         </TouchableOpacity>
 
         <Modal visible={showForm} onRequestClose={() => setShowForm(false)}>
+       
+        
           <View style={styles.form}>
             <Text style={styles.formLabel}>Name:</Text>
             <TextInput
@@ -279,6 +296,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
   },
+
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: 'black',
+    fontSize: 16,
+  },
+  
   statement:{
     fontSize:16,
     color:"black",

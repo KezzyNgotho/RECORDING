@@ -3,6 +3,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {MainStackNavigator, LoginStackNavigator } from '../KEEP/src/components/navigation/StackNavigator';
 const connectDB = require('../KEEP/src/components/db');
+//import { HeaderBackButton } from '@react-navigation/stack';
+
 
 connectDB();
 
@@ -10,9 +12,9 @@ const Lighttheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#ffffff',
-    primary: '#6200ee',
-    accent: '#03dac4',
+    background: '#CEF3CE',
+    primary: '#CEF3CE',
+    accent: '#CEF3CE',
   },
 };
 
@@ -20,9 +22,9 @@ const Darktheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: '#121212',
-    primary: '#bb86fc',
-    accent: '#03dac6',
+    background: 'red',
+    primary: 'black',
+    accent: '#CEF3CE',
   },
 };
 

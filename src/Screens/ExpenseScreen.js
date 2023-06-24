@@ -14,10 +14,15 @@ import Toast from 'react-native-toast-message';
 import { saveExpenseStatement } from '../components/expense';
 import axios from "axios"
 const cron = require('node-cron');
+import { useNavigation } from '@react-navigation/native';
 
 const ExpenseScreen = () => {
+  const navigation = useNavigation();
   const [expenses, setExpenses] = useState([]);
   const [newExpense, setNewExpense] = useState({
+   
+
+
     description: '',
     amount: '',
     date: new Date() // Initialize with default date
@@ -29,7 +34,7 @@ const ExpenseScreen = () => {
 
   const fetchExpenses = () => {
     axios
-      .get('http://192.168.0.101:4000/expenses')
+      .get('http://192.168.0.103:4000/expenses')
       .then((response) => {
         setExpenses(response.data);
         calculateTotalExpenses(response.data);
@@ -61,7 +66,7 @@ const ExpenseScreen = () => {
   
       // Send POST request to save the expense
       
-      axios.post('http://192.168.0.101:4000/expenses', expenseData)
+      axios.post('http://192.168.0.103:4000/expenses', expenseData)
         .then(response => {
           // Handle successful response
           setExpenses([...expenses, newExpense]);
@@ -116,9 +121,16 @@ const ExpenseScreen = () => {
       setNewExpense({ ...newExpense, date });
     }
   };
-
+//back
+const handleGoBack = () => {
+  navigation.goBack();
+};
   return (
     <SafeAreaView style={styles.container}>
+    <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+    <Text style={styles.backButtonText}>Back</Text>
+  </TouchableOpacity>
+
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View>
           <Text style={styles.headerText}>Track my expenses</Text>
@@ -181,6 +193,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: 'black',
+    fontSize: 16,
   },
   scrollContainer: {
     flexGrow: 1,

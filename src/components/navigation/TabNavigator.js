@@ -1,53 +1,68 @@
-import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import HomeScreen from '../../Screens/HomeScreen';
-import SettingsScreen from '../../Screens/SettingsScreen';
-import CattleScreen from '../../Screens/CattleScreen';
-import StatementsScreen from '../../Screens/StatementsScreen';
-import MilkScreen from '../../Screens/MilkScreen';
-import SalesScreen from '../../Screens/SalesScreen';
-import ExpenseScreen from '../../Screens/ExpenseScreen';
-import NotificationScreen from '../../Screens/NotificationScreen';
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import React from "react";
+import { useTheme } from "react-native-paper";
+import { Image } from "react-native";
+//import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+//import DepositScreen from "../screens/DepositScreen";
+import LoginScreen from "../../Screens/LoginScreen";
+//import ProfileScreen from "../screens/ProfileScreen";
 import SidebarDrawer from '../../Screens/SidebarDrawer';
-import SignUpScreen from '../../Screens/SignUpScreen';
-import LoginScreen from '../../Screens/LoginScreen';
-import TabNavigator from "../navigation/TabNavigator"
+import MilkScreen from '../../Screens/MilkScreen';
+import { MainStackNavigator, ContactStackNavigator } from "./StackNavigator";
 
-const Stack = createNativeStackNavigator();
+const Tab = createMaterialBottomTabNavigator();
 
-const screenOptionStyle = {
-    headerShown: false,
-    headerBackTitle: 'Back',
+const BottomTabNavigator = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Tab.Navigator
+      activeColor={colors.primary}
+      inactiveColor={colors.onBackground}
+      barStyle={{ backgroundColor: 'white' }}
+      initialRouteName='Homescreen'
+    >
+      <Tab.Screen
+        options={{
+          tabBarLabel: 'Home',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('../../Screens/assets/icons8-home-64.png')}
+              style={{ tintColor: color, width: 26, height: 26 }}
+            />
+          ),
+        }}
+        name="Homescreen" component={MainStackNavigator} />
+      <Tab.Screen
+        options={{
+          tabBarLabel: 'SidebarDrawer',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('../../Screens/assets/menu.png')}
+              style={{ tintColor: color, width: 26, height: 26 }}
+            />
+          ),
+        }}
+        name="SidebarDrawer" component={SidebarDrawer} />
+
+      {/* navigationOptions:()=>{
+          return {
+            tabBarVisible:false,
+          };
+      */}
+      <Tab.Screen
+        options={{
+          tabBarLabel: 'Milk',
+          tabBarIcon: ({ color }) => (
+            <Image
+              source={require('../../Screens/assets/icons8-milk-16.png')}
+              style={{ tintColor: color, width: 26, height: 26 }}
+            />
+          ),
+        }}
+        name="MilkScreen" component={MilkScreen} />
+    </Tab.Navigator>
+  );
 };
 
-const MainStackNavigator = () => {
-    return (
-        <Stack.Navigator screenOptions={screenOptionStyle} initialRouteName="Home">
-            <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Cattle" component={CattleScreen} />
-            <Stack.Screen name="Statements" component={StatementsScreen} />
-            <Stack.Screen name="Milk" component={MilkScreen} />
-            <Stack.Screen name="Sales" component={SalesScreen} />
-            <Stack.Screen name="Expenses" component={ExpenseScreen} />
-            <Stack.Screen name="Notification" component={NotificationScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="SidebarDrawer" component={SidebarDrawer} />
-            <Stack.Screen name="Tab" component={TabNavigator} />
-            
-        </Stack.Navigator>
-    );
-};
-const LoginStackNavigator = () => {
-    return (
-      <Stack.Navigator screenOptions={screenOptionStyle} initialRouteName="SignUp">
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Main" component={MainStackNavigator} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    );
-  };
-  
-
-export { MainStackNavigator, LoginStackNavigator };
+export default BottomTabNavigator;

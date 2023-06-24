@@ -7,7 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import axios from 'axios';
-import {User} from '../db';
+//import {User} from '../db';
 
 const LoginScreen = ({navigation}) => {
   const [email, setEmail] = useState('');
@@ -22,7 +22,7 @@ const LoginScreen = ({navigation}) => {
     }
 
     try {
-      const response = await axios.post('http://192.168.0.101:4000/login', {
+      const response = await axios.post('http://192.168.0.103:4000/login', {
         email,
         password,
       });

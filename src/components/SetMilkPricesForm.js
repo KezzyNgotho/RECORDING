@@ -28,7 +28,7 @@ function SetMilkPricesForm() {
               pricePerLiter: parseFloat(price),
             };
   
-            fetch('http://192.168.0.101:4000/milk-prices', {
+            fetch('http://192.168.0.103:4000/milk-prices', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

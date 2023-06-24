@@ -31,7 +31,7 @@ const MilkScreen = () => {
 
   const fetchTimeOfDayOptions = () => {
     axios
-      .get('http://192.168.0.101:4000/timeOfDayOptions')
+      .get('http://192.168.0.103:4000/timeOfDayOptions')
       .then((response) => {
         setTimeOfDayOptions(response.data);
       })
@@ -42,7 +42,7 @@ const MilkScreen = () => {
 
   const fetchUsageOptions = () => {
     axios
-      .get('http://192.168.0.101:4000/usageOptions')
+      .get('http://192.168.0.103:4000/usageOptions')
       .then((response) => {
         setUsageOptions(response.data);
       })
@@ -89,7 +89,7 @@ const MilkScreen = () => {
     }
 
     axios
-      .post('http://192.168.0.101:4000/recordMilkProduction', {
+      .post('http://192.168.0.103:4000/recordMilkProduction', {
         timeOfDay,
         amount,
         date,
@@ -119,7 +119,7 @@ const MilkScreen = () => {
     }
 
     axios
-      .post('http://192.168.0.101:4000/recordMilkUsage', {
+      .post('http://192.168.0.103:4000/recordMilkUsage', {
         usage,
         quantity,
       })
@@ -137,7 +137,7 @@ const MilkScreen = () => {
 
   const handleGenerateStatements = () => {
     axios
-      .get('http://192.168.0.101:4000/generateMilkStatements')
+      .get('http://192.168.0.103:4000/generateMilkStatements')
       .then((response) => {
         console.log(response.data);
         Alert.alert('Success', 'Milk statements generated successfully');
@@ -148,8 +148,15 @@ const MilkScreen = () => {
       });
   };
 
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+        <Text style={styles.backButtonText}>Back</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>Record Milk Production</Text>
       <TouchableOpacity
         style={styles.datePickerButton}
@@ -204,55 +211,64 @@ const MilkScreen = () => {
         style={styles.statementButton}
         onPress={handleGenerateStatements}
       >
-        <Text style={styles.statementButtonText}>
-          Generate Milk Statements
-        </Text>
+     
       </TouchableOpacity>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: '#F5F5F5',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: '#333',
+    fontSize: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '900',
-    marginBottom: 10,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
-    color: '#000000',
+    color: '#333',
   },
   datePickerButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#333',
     borderRadius: 5,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 20,
     alignItems: 'center',
   },
   datePickerButtonText: {
-    color: 'white',
+    color: '#FFF',
     fontWeight: 'bold',
   },
   input: {
     borderWidth: 2,
-    borderColor: 'black',
+    borderColor: '#333',
     borderRadius: 5,
     padding: 10,
     marginBottom: 10,
-    color: 'black',
+    color: '#333',
     fontSize: 16,
   },
   recordButton: {
-    backgroundColor: '#000000',
+    backgroundColor: '#333',
     borderRadius: 5,
     padding: 10,
     alignItems: 'center',
     marginBottom: 10,
   },
   recordButtonText: {
-    color: 'white',
+    color: '#FFF',
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -262,8 +278,8 @@ const styles = StyleSheet.create({
   },
   statementButtonText: {
     fontSize: 18,
-    fontWeight: '900',
-    color: '#000000',
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 

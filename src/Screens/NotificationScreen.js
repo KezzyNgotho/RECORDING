@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 const NotificationScreen = () => {
+  const navigation = useNavigation();
   const [notifications, setNotifications] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newNotification, setNewNotification] = useState({
@@ -31,7 +33,7 @@ const NotificationScreen = () => {
   const fetchNotifications = async () => {
     try {
       const response = await axios.get(
-        'http://192.168.0.101:4000/notifications',
+        'http://192.168.0.103:4000/notifications',
       );
       setNotifications(response.data);
     } catch (error) {
@@ -42,7 +44,7 @@ const NotificationScreen = () => {
   const handleAddNotification = async () => {
     try {
       const response = await axios.post(
-        'http://192.168.0.101:4000/notifications',
+        'http://192.168.0.103:4000/notifications',
         {
           title: newNotification.title,
           description: newNotification.description,
@@ -102,9 +104,16 @@ const NotificationScreen = () => {
       }
     });
   };
-
+//back
+const handleGoBack = () => {
+  navigation.goBack();
+};
   return (
     <SafeAreaView style={styles.container}>
+    <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+    <Text style={styles.backButtonText}>Back</Text>
+  </TouchableOpacity>
+
       <Text style={styles.screenTitle}>Notifications</Text>
       <FlatList
         data={notifications}
@@ -179,6 +188,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    zIndex: 1,
+  },
+  backButtonText: {
+    color: 'black',
+    fontSize: 16,
   },
   screenTitle: {
     fontSize: 24,

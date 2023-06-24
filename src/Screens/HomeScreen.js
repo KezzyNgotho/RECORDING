@@ -3,6 +3,9 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView } from 'rea
 
 import { useNavigation } from '@react-navigation/native';
 import Dashboard from '../components/Dashboard';
+//import BottomTabNavigator from '../components/BottomTabNavigator';
+//import HomeScreenWithTabs from '../components/HomeScreenWithTabs';
+
 
 function HomeScreen() {
   const navigation = useNavigation();
@@ -89,6 +92,7 @@ function HomeScreen() {
       <View style={styles.dashboard}>
         <Dashboard />
       </View>
+      
 
     </View>
   );
@@ -128,7 +132,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#CEF3CE',
     borderRadius: 10,
     padding: 20,
     marginBottom: 10,
