@@ -77,11 +77,12 @@ const CattleScreen = () => {
         Pregnant: {item.isPregnant ? 'Yes' : 'No'}
       </Text>
       <View style={styles.genderIcon}>
-        <Icon
-          name={item.gender === 'male' ? 'mars' : 'venus'}
-          size={18}
-          color="#000000"/>
-      </View>
+  <Image
+    source={item.gender === 'male' ? require('../../src/Screens/assets/icons8-year-of-ox-50.png') : require('../../src/Screens/assets/icons8-cattle-58.png')}
+    style={styles.icon}
+  />
+</View>
+
       {item.isPregnant && (
         <View style={styles.pregnantIcon}>
           <View style={styles.profile}>
@@ -307,7 +308,14 @@ const styles = StyleSheet.create({
     color: 'black',
     fontSize: 16,
   },
-  
+  genderIcon: {
+    marginRight: 10,
+  },
+  icon: {
+    width: 18,
+    height: 18,
+    resizeMode: 'contain',
+  },
   statement:{
     fontSize:16,
     color:"black",
@@ -466,3 +474,4 @@ const styles = StyleSheet.create({
   },
 });
 export default CattleScreen;
+ 

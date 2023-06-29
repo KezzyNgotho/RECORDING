@@ -54,7 +54,7 @@ const LoginStackNavigator = () => {
       {/* <Stack.Screen name="ProfileScreen" component={ProfileScreen} /> */}
 
     
-      <Stack.Screen name="SignupScreen" component={SignUpScreen} />
+      <Stack.Screen name="Signup" component={SignUpScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Main" component={BottomTabNavigator} />
 

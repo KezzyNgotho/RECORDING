@@ -102,8 +102,6 @@ app.get('/cattles', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
-
 app.post('/cattle', async (req, res) => {
   const newCattleData = req.body;
   try {
@@ -118,6 +116,7 @@ app.post('/cattle', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+//milk
 
 const milkSchema = new mongoose.Schema({
   timeOfDay: { type: String, required: true },
@@ -168,7 +167,7 @@ app.post('/recordMilkProduction', async (req, res) => {
 app.get('/generateMilkStatements', (req, res) => {
   res.json({ message: 'Milk statements generated successfully.' });
 });
-
+//milkusage
 const milkUsageSchema = new mongoose.Schema({
   timeOfDay: String,
   date: { type: Date, default: Date.now },
@@ -210,13 +209,11 @@ app.post('/recordMilkUsage', async (req, res) => {
 
     const milkUsage = new MilkUsage({
       timeOfDay,
-      amount: milkProduction,
-      date: new Date(),
       usage,
       quantity,
     });
 
-    if (milkUsage.quantity > milkUsage.amount) {
+    if (milkUsage.quantity > milkProduction) {
       return res.status(400).json({ error: 'Milk usage cannot exceed milk production' });
     }
 
@@ -228,6 +225,7 @@ app.post('/recordMilkUsage', async (req, res) => {
     res.status(500).json({ error: 'Failed to record milk usage.' });
   }
 });
+
 //notification
 const notificationSchema = new mongoose.Schema({
   title: String,
